@@ -1,0 +1,10 @@
+package slinguist
+
+// Extracted from github/linguist.
+// This one-liner prints the latest version:
+// curl https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml | python -c 'from collections import defaultdict; import os; import json; import yaml; l = yaml.load(os.sys.stdin.read()); exts = reduce(lambda acc, x: acc + x, [v.get("extensions", []) for k, v in l.items()], []); m = {ext: [k for k, v in l.items() if ext in v.get("extensions", [])] for ext in exts}; print "package utils\n\nvar languagesByExtension = map[string][]string{\n"+ json.dumps(m).replace("]", "}").replace("},", "},\n").replace("[", "{")[1:-1] + ",\n}\n"' | gofmt
+var languagesByExtension = map[string][]string{
+{{ range $extension, $languages := . }}
+	"{{ $extension }}":	{ {{- $languages | formatStringSlice -}} },
+{{ end }}
+}
