@@ -1,7 +1,5 @@
 package slinguist
 
-//go:generate go run generate/main.go
-
 const OtherLanguage = "Other"
 
 var (
