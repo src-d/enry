@@ -144,9 +144,8 @@ func (sgl *GenerateLanguages) Test_formatStringSlice() {
 
 	for _, tt := range tests {
 		sgl.T().Run(tt.name, func(t *testing.T) {
-			if got := formatStringSlice(tt.args.slice); got != tt.want {
-				t.Errorf("formatStringSlice() = %v, want %v", got, tt.want)
-			}
+			got := formatStringSlice(tt.args.slice)
+			assert.Equal(t, tt.want, got, fmt.Sprintf("formatStringSlice() = %v, want %v", got, tt.want))
 		})
 	}
 }
