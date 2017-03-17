@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"io"
+
 	"gopkg.in/toqueteos/substring.v1"
 )
 
@@ -17,7 +19,7 @@ func GetLanguageByContent(filename string, content []byte) (lang string, safe bo
 	return GetLanguageByExtension(filename)
 }
 
-type languageMatcher func([]byte) (string, bool)
+type languageMatcher func(io.RuneReader) []string
 
 var matchers = map[string]languageMatcher{
 	".bf": func(i []byte) (string, bool) {

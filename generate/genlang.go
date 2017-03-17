@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	languagesYAML     = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
+	languagesURL      = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
 	extField          = "extensions"
 	languagesTmplPath = "generate/languages.go.tmpl"
 	tmplName          = "languages.go.tmpl"
@@ -21,12 +21,13 @@ const (
 )
 
 var (
+	// ErrExtensionsNotFound is the error returned if a yaml.MapSlice doesn't contain a key named extField.
 	ErrExtensionsNotFound = errors.New("yaml.MapSlice doesn't contain extensions")
 )
 
 func generateLanguages(out io.Writer, languagesTmplPath, tmplName string) {
 	// get languages.yml
-	res, err := http.Get(languagesYAML)
+	res, err := http.Get(languagesURL)
 	if err != nil {
 		log.Fatal(err)
 	}
