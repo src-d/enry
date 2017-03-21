@@ -12,9 +12,9 @@ import (
 	"strings"
 )
 
-const (
-	heuristicsURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/heuristics.rb"
-)
+// func main() {
+// 	generateHeuristics()
+// }
 
 // LangHeur represents the relation between a language and the necessary regexp to apply heuristics.
 type LangHeur map[string][]string
@@ -25,11 +25,54 @@ type Disamb struct {
 	Languages LangHeur
 }
 
+func generateHeuristics() {
+	const heuristicsURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/heuristics.rb"
+
+	// get heuristics.rb
+	res, err := http.Get(heuristicsURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buf, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	heuRB := bufio.NewScanner(bytes.NewReader(buf))
+	disambiguators := GetDisamb(heuRB)
+
+	// debug
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+	if err := enc.Encode(disambiguators); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// GetDisamb takes in a buf to parse and builds a slice of *Disamb to return.
+func GetDisamb(buf *bufio.Scanner) []*Disamb {
+	disambLine := regexp.MustCompile(`^(\s*)disambiguate`)
+	disambiguators := make([]*Disamb, 0, 50)
+	for buf.Scan() {
+		line := buf.Text()
+		if disambLine.MatchString(line) {
+			disambiguators = append(disambiguators, ParseDisamb(line, buf)...)
+		}
+
+	}
+
+	return disambiguators
+}
+
 // ParseDisamb takes in the line of the heuristics file where a disambiguate block
-// starts and the Scanner to read. It returns a *[]Disamb, with the diasambiguators found.
+// starts and the Scanner to read. It returns a *[]Disamb, with the diasambiguators
+// found for this block.
 func ParseDisamb(line string, buf *bufio.Scanner) []*Disamb {
 	disambList := make([]*Disamb, 0, 2)
 	splitted := strings.Fields(line)
+	// line looks like:	disambiguate ".lsp", ".lisp" do |data|
+	// get the extensions associated to this disambiguate block
 	for _, v := range splitted {
 		if strings.HasPrefix(v, `"`) {
 			extension := strings.Trim(v, `",`)
@@ -38,11 +81,31 @@ func ParseDisamb(line string, buf *bufio.Scanner) []*Disamb {
 		}
 	}
 
+	for _, v := range disambList {
+		v.Languages = GetLangHeur(buf)
+	}
+
+	return disambList
+}
+
+// GetLangHeur builds the LangHeur associated to a disambiguate block.
+func GetLangHeur(buf *bufio.Scanner) LangHeur {
 	langs := make([]string, 0, 2)
 	regs := make([][]string, 0, 1)
+
+	// a disambiguate block looks like:
+	// disambiguate ".mod" do |data|
+	// 	if data.include?('<!ENTITY ')
+	// 		Language["XML"]
+	// 	elsif /^\s*MODULE [\w\.]+;/i.match(data) || /^\s*END [\w\.]+;/i.match(data)
+	// 		Language["Modula-2"]
+	// 	else
+	// 		[Language["Linux Kernel Module"], Language["AMPL"]]
+	// 	end
+	// end
 	for buf.Scan() {
 		l := buf.Text()
-		if strings.Contains(line, "end") {
+		if strings.Contains(l, "end") {
 			break
 		}
 
@@ -77,60 +140,5 @@ func ParseDisamb(line string, buf *bufio.Scanner) []*Disamb {
 		}
 	}
 
-	for _, v := range disambList {
-		v.Languages = languages
-	}
-
-	return disambList
-}
-
-var (
-	disambiguators = make([]*Disamb, 0, 50)
-	disambLine     = regexp.MustCompile(`^(\s*)disambiguate`)
-)
-
-func main() {
-	// langsFound["Language X"] = []string{"regexp1", "regexp2", "regexp3"}
-	// langsFound["Language Y"] = []string{"regexp4", "regexp4", "regexp5"}
-
-	// fmt.Printf("%#v\n", langsFound)
-
-	// for k, v := range langsFound {
-	// 	fmt.Println(k, v)
-	// }
-
-	generateHeuristics()
-}
-
-func generateHeuristics() {
-	// get heuristics.rb
-	res, err := http.Get(heuristicsURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	buf, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	heuRB := bufio.NewScanner(bytes.NewReader(buf))
-
-	for heuRB.Scan() {
-		line := heuRB.Text()
-		if disambLine.MatchString(line) {
-			disambiguators = append(disambiguators, ParseDisamb(line, heuRB)...)
-		}
-
-	}
-
-	// for _, d := range disambiguators {
-	// 	fmt.Printf("%#v\n", d)
-	// }
-
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
-	if err := enc.Encode(disambiguators); err != nil {
-		log.Fatal(err)
-	}
+	return languages
 }

@@ -44,16 +44,7 @@ func generateLanguages(out io.Writer, languagesTmplPath, tmplName string) {
 	}
 
 	// build the extension->languages map
-	languagesByExtension := make(map[string][]string)
-
-	for _, lang := range yamlSlice {
-		extensions, err := findExtensions(lang.Value.(yaml.MapSlice), extField)
-		if err != nil && err != ErrExtensionsNotFound {
-			log.Println(err)
-		}
-
-		fillMap(languagesByExtension, lang.Key.(string), extensions)
-	}
+	languagesByExtension := getExtMap(yamlSlice)
 
 	// generate languages.go from languages.go.tmpl
 	fmap := template.FuncMap{
@@ -64,6 +55,20 @@ func generateLanguages(out io.Writer, languagesTmplPath, tmplName string) {
 	if err := t.Execute(out, languagesByExtension); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getExtMap(yamlSlice yaml.MapSlice) map[string][]string {
+	extLang := make(map[string][]string)
+	for _, lang := range yamlSlice {
+		extensions, err := findExtensions(lang.Value.(yaml.MapSlice), extField)
+		if err != nil && err != ErrExtensionsNotFound {
+			log.Println(err)
+		}
+
+		fillMap(extLang, lang.Key.(string), extensions)
+	}
+
+	return extLang
 }
 
 func findExtensions(items yaml.MapSlice, key string) ([]interface{}, error) {

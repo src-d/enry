@@ -470,6 +470,7 @@ var languagesByExtension = map[string][]string{
 	".man":                 {"Roff"},
 	".mao":                 {"Mako"},
 	".markdown":            {"Markdown"},
+	".marko":               {"Marko"},
 	".mask":                {"Mask"},
 	".mat":                 {"Unity3D Asset"},
 	".mata":                {"Stata"},
