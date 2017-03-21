@@ -56,8 +56,8 @@ func getExtMap(yamlSlice yaml.MapSlice) (map[string][]string, error) {
 	return extLang, nil
 }
 
-// findExtensions takes in a yaml.MapSlice and search for the field extField. It returns a slice of extensions
-// found or ErrExtensionsNotFound if none extensions were found.
+// findExtensions takes in a yaml.MapSlice and search for the field extField. It returns either a slice of
+// extensions found or ErrExtensionsNotFound if none extensions were found.
 func findExtensions(items yaml.MapSlice) ([]interface{}, error) {
 	const extField = "extensions"
 	for _, item := range items {

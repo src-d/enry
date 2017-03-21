@@ -4,17 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
-	"net/http"
+	"io"
 	"os"
 	"regexp"
 	"strings"
 )
-
-// func main() {
-// 	generateHeuristics()
-// }
 
 // LangHeur represents the relation between a language and the necessary regexp to apply heuristics.
 type LangHeur map[string][]string
@@ -25,20 +19,8 @@ type Disamb struct {
 	Languages LangHeur
 }
 
-func generateHeuristics() {
-	const heuristicsURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/heuristics.rb"
-
-	// get heuristics.rb
-	res, err := http.Get(heuristicsURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	buf, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+// generateHeuristics read from buf and builds content.go file from contentTmplPath.
+func generateHeuristics(out io.Writer, buf []byte, contentTmplPath, contentTmpl string) error {
 	heuRB := bufio.NewScanner(bytes.NewReader(buf))
 	disambiguators := getDisamb(heuRB)
 
@@ -46,8 +28,10 @@ func generateHeuristics() {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "\t")
 	if err := enc.Encode(disambiguators); err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 // getDisamb takes in a buf to parse and builds a slice of *Disamb to return.

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,49 +20,34 @@ const (
 	contentTmpl     = "content.go.tmpl"
 )
 
+// Generator is the type of functions that generate the files from templates.
+type Generator func(io.Writer, []byte, string, string) error
+
 func main() {
-	genFileLang(languagesURL, langFile, languagesTmplPath, languagesTmpl)
-	genFileContent(heuristicsURL, contentFile, contentTmplPath, contentTmpl)
+	genFile(languagesURL, langFile, languagesTmplPath, languagesTmpl, generateLanguages)
+	// genFile(heuristicsURL, "/tmp/content.go", contentTmplPath, contentTmpl, generateHeuristics)
 }
 
-func genFileLang(languagesURL, langFile, languagesTmplPath, languagesTmpl string) {
-	f, err := os.Create(langFile)
+func genFile(fileURL, outFile, tmplPath, tmpl string, generate Generator) {
+	f, err := os.Create(outFile)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	buf, err := getRemoteFile(languagesURL)
+	buf, err := getRemoteFile(fileURL)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if err := generateLanguages(f, buf, languagesTmplPath, languagesTmpl); err != nil {
+	if err := generate(f, buf, tmplPath, tmpl); err != nil {
 		log.Println(err)
 	}
 }
 
-func genFileContent(heuristicsURL, contentFile, contentTmplPath, contentTmpl string) {
-	// f, err := os.Create(heuristicsFile)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	// buf, err := getRemoteFile(heuristicsURL)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	// if err := generateHeuristics(f, buf, heuristicsTmplPath, heuristicsTmpl); err != nil {
-	// 	log.Println(err)
-	// }
-}
-
-func getRemoteFile(url string) ([]byte, error) {
-	res, err := http.Get(languagesURL)
+func getRemoteFile(fileURL string) ([]byte, error) {
+	res, err := http.Get(fileURL)
 	if err != nil {
 		return nil, err
 	}
