@@ -12,9 +12,9 @@ import (
 	"strings"
 )
 
-func main() {
-	generateHeuristics()
-}
+// func main() {
+// 	generateHeuristics()
+// }
 
 // LangHeur represents the relation between a language and the necessary regexp to apply heuristics.
 type LangHeur map[string][]string
@@ -40,7 +40,7 @@ func generateHeuristics() {
 	}
 
 	heuRB := bufio.NewScanner(bytes.NewReader(buf))
-	disambiguators := GetDisamb(heuRB)
+	disambiguators := getDisamb(heuRB)
 
 	// debug
 	enc := json.NewEncoder(os.Stdout)
@@ -50,14 +50,14 @@ func generateHeuristics() {
 	}
 }
 
-// GetDisamb takes in a buf to parse and builds a slice of *Disamb to return.
-func GetDisamb(buf *bufio.Scanner) []*Disamb {
+// getDisamb takes in a buf to parse and builds a slice of *Disamb to return.
+func getDisamb(buf *bufio.Scanner) []*Disamb {
 	disambLine := regexp.MustCompile(`^(\s*)disambiguate`)
 	disambiguators := make([]*Disamb, 0, 50)
 	for buf.Scan() {
 		line := buf.Text()
 		if disambLine.MatchString(line) {
-			disambiguators = append(disambiguators, ParseDisamb(line, buf)...)
+			disambiguators = append(disambiguators, parseDisamb(line, buf)...)
 		}
 
 	}
@@ -65,10 +65,10 @@ func GetDisamb(buf *bufio.Scanner) []*Disamb {
 	return disambiguators
 }
 
-// ParseDisamb takes in the line of the heuristics file where a disambiguate block
+// parseDisamb takes in the line of the heuristics file where a disambiguate block
 // starts and the Scanner to read. It returns a *[]Disamb, with the diasambiguators
 // found for this block.
-func ParseDisamb(line string, buf *bufio.Scanner) []*Disamb {
+func parseDisamb(line string, buf *bufio.Scanner) []*Disamb {
 	disambList := make([]*Disamb, 0, 2)
 	splitted := strings.Fields(line)
 	// line looks like:	disambiguate ".lsp", ".lisp" do |data|
@@ -82,14 +82,14 @@ func ParseDisamb(line string, buf *bufio.Scanner) []*Disamb {
 	}
 
 	for _, v := range disambList {
-		v.Languages = GetLangHeur(buf)
+		v.Languages = getLangHeur(buf)
 	}
 
 	return disambList
 }
 
-// GetLangHeur builds the LangHeur associated to a disambiguate block.
-func GetLangHeur(buf *bufio.Scanner) LangHeur {
+// getLangHeur builds the LangHeur associated to a disambiguate block.
+func getLangHeur(buf *bufio.Scanner) LangHeur {
 	langs := make([]string, 0, 2)
 	regs := make([][]string, 0, 1)
 

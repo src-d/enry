@@ -50,18 +50,31 @@ func (sgl *GenerateLanguages) Test_generateLanguages() {
 		assert.Fail(sgl.T(), err.Error())
 	}
 
+	f, err = os.Open(YAMLFile)
+	if err != nil {
+		assert.Fail(sgl.T(), err.Error())
+	}
+
+	input, err := ioutil.ReadAll(f)
+	if err != nil {
+		assert.Fail(sgl.T(), err.Error())
+	}
+
 	tests := []struct {
-		name    string
-		wantOut []byte
+		name              string
+		input             []byte
+		languagesTmplPath string
+		languagesTmpl     string
+		wantOut           []byte
 	}{
-		{name: "Test_generateLanguages", wantOut: gold},
+		{name: "Test_generateLanguages", input: input, languagesTmplPath: languagesTmpl, languagesTmpl: languagesTmpl, wantOut: gold},
 	}
 
 	for _, tt := range tests {
 		sgl.T().Run(tt.name, func(t *testing.T) {
 			out := &bytes.Buffer{}
-			generateLanguages(out, tmplName, tmplName)
-			assert.EqualValues(t, gold, out.Bytes(), fmt.Sprintf("generateLanguages() = %v, want %v", out, tt.wantOut))
+			generateLanguages(out, tt.input, tt.languagesTmplPath, tt.languagesTmpl)
+			assert.EqualValues(t, tt.wantOut, out.Bytes(), fmt.Sprintf("generateLanguages() = %v, want %v", out, tt.wantOut))
 		})
 	}
 }
@@ -69,7 +82,6 @@ func (sgl *GenerateLanguages) Test_generateLanguages() {
 func (sgl *GenerateLanguages) Test_findExtensions() {
 	type args struct {
 		items yaml.MapSlice
-		key   string
 	}
 
 	tests := []struct {
@@ -80,7 +92,7 @@ func (sgl *GenerateLanguages) Test_findExtensions() {
 	}{
 		{
 			name: "Test_findExtensions",
-			args: args{items: sgl.YAMLParsed, key: extField}, want: []interface{}{".bsl", ".os", ".abap", ".abnf"},
+			args: args{items: sgl.YAMLParsed}, want: []interface{}{".bsl", ".os", ".abap", ".abnf"},
 			wantErr: false,
 		},
 	}
@@ -89,7 +101,7 @@ func (sgl *GenerateLanguages) Test_findExtensions() {
 		sgl.T().Run(tt.name, func(t *testing.T) {
 			extensions := make([]interface{}, 0, len(tt.want))
 			for _, lang := range tt.args.items {
-				got, err := findExtensions(lang.Value.(yaml.MapSlice), tt.args.key)
+				got, err := findExtensions(lang.Value.(yaml.MapSlice))
 				if err != nil {
 					assert.True(t, tt.wantErr, fmt.Sprintf("findExtensions() error = %v, wantErr %v", err, tt.wantErr))
 				}

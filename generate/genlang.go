@@ -3,18 +3,10 @@ package main
 import (
 	"errors"
 	"io"
-	"io/ioutil"
-	"log"
-	"net/http"
 	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	languagesURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
-	extField     = "extensions"
 )
 
 var (
@@ -22,55 +14,54 @@ var (
 	ErrExtensionsNotFound = errors.New("yaml.MapSlice doesn't contain extensions")
 )
 
-func generateLanguages(out io.Writer, languagesTmplPath, tmplName string) {
-	// get languages.yml
-	res, err := http.Get(languagesURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	buf, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+// generateLanguages read from buf and builds languages.go file from languagesTmplPath.
+func generateLanguages(out io.Writer, buf []byte, languagesTmplPath, languagesTmpl string) error {
 	// unmarshal yaml
 	var yamlSlice yaml.MapSlice
 	if err := yaml.Unmarshal(buf, &yamlSlice); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// build the extension->languages map
-	languagesByExtension := getExtMap(yamlSlice)
+	languagesByExtension, err := getExtMap(yamlSlice)
+	if err != nil {
+		return err
+	}
 
 	// generate languages.go from languages.go.tmpl
 	fmap := template.FuncMap{
 		"formatStringSlice": formatStringSlice,
 	}
 
-	t := template.Must(template.New(tmplName).Funcs(fmap).ParseFiles(languagesTmplPath))
+	t := template.Must(template.New(languagesTmpl).Funcs(fmap).ParseFiles(languagesTmplPath))
 	if err := t.Execute(out, languagesByExtension); err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func getExtMap(yamlSlice yaml.MapSlice) map[string][]string {
+// get ExtMap takes in a yaml.MapSlice and builds the map of relations extensions->languages.
+func getExtMap(yamlSlice yaml.MapSlice) (map[string][]string, error) {
 	extLang := make(map[string][]string)
 	for _, lang := range yamlSlice {
-		extensions, err := findExtensions(lang.Value.(yaml.MapSlice), extField)
+		extensions, err := findExtensions(lang.Value.(yaml.MapSlice))
 		if err != nil && err != ErrExtensionsNotFound {
-			log.Println(err)
+			return nil, err
 		}
 
 		fillMap(extLang, lang.Key.(string), extensions)
 	}
 
-	return extLang
+	return extLang, nil
 }
 
-func findExtensions(items yaml.MapSlice, key string) ([]interface{}, error) {
+// findExtensions takes in a yaml.MapSlice and search for the field extField. It returns a slice of extensions
+// found or ErrExtensionsNotFound if none extensions were found.
+func findExtensions(items yaml.MapSlice) ([]interface{}, error) {
+	const extField = "extensions"
 	for _, item := range items {
-		if item.Key == key {
+		if item.Key == extField {
 			return item.Value.([]interface{}), nil
 		}
 	}
@@ -78,6 +69,7 @@ func findExtensions(items yaml.MapSlice, key string) ([]interface{}, error) {
 	return nil, ErrExtensionsNotFound
 }
 
+// fillMap takes in a mapExt to insert the key lang, and give it the value of a []string from extensions.
 func fillMap(mapExt map[string][]string, lang string, extensions []interface{}) {
 	for _, extension := range extensions {
 		ex := extension.(string)
@@ -89,6 +81,7 @@ func fillMap(mapExt map[string][]string, lang string, extensions []interface{}) 
 	}
 }
 
+// formatStringSlice takes in slice and build the strings with the properly format for the template.
 func formatStringSlice(slice []string) string {
 	s := strings.Join(slice, `","`)
 	s = `"` + s + `"`
