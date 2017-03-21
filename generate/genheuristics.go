@@ -12,9 +12,9 @@ import (
 	"strings"
 )
 
-// func main() {
-// 	generateHeuristics()
-// }
+func main() {
+	generateHeuristics()
+}
 
 // LangHeur represents the relation between a language and the necessary regexp to apply heuristics.
 type LangHeur map[string][]string

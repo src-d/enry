@@ -13,11 +13,8 @@ import (
 )
 
 const (
-	languagesURL      = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
-	extField          = "extensions"
-	languagesTmplPath = "generate/languages.go.tmpl"
-	tmplName          = "languages.go.tmpl"
-	langFile          = "languages.go"
+	languagesURL = "https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml"
+	extField     = "extensions"
 )
 
 var (
