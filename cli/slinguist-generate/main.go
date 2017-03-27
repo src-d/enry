@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/src-d/simple-linguist/cli/slinguist-generate/generate"
+	"github.com/src-d/simple-linguist/cli/slinguist-generate/generator"
 )
 
 const (
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// generateFile(languagesYAML, langFile, languagesTmplPath, languagesTmpl, commit, generate.Languages)
-	generateFile(heuristicsRuby, "/tmp/content.go", contentTmplPath, contentTmpl, commit, generate.Heuristics)
+	generateFile(heuristicsRuby, "/tmp/content.go", contentTmplPath, contentTmpl, commit, generator.Heuristics)
 }
 
 func getCommit(path string) (string, error) {
@@ -46,7 +46,7 @@ func getCommit(path string) (string, error) {
 	return string(buf), nil
 }
 
-func generateFile(fileToParsePath, outPath, tmplPath, tmpl, commit string, generate generate.GeneratorFunc) {
+func generateFile(fileToParsePath, outPath, tmplPath, tmpl, commit string, generate generator.Func) {
 	outFile, err := os.Create(outPath)
 	if err != nil {
 		log.Println(err)

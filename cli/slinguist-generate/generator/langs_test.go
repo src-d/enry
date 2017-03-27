@@ -1,4 +1,4 @@
-package generate
+package generator
 
 import (
 	"bytes"
@@ -75,8 +75,8 @@ func (l *GenerateLanguages) Test_Languages() {
 		{
 			name:              "Test_generateLanguages",
 			input:             input,
-			languagesTmplPath: "../assets/languages.go.tmpl",
-			languagesTmpl:     "languages.go.tmpl",
+			languagesTmplPath: "test_files/languages.test.tmpl",
+			languagesTmpl:     "languages.test.tmpl",
 			commit:            l.Commit,
 			wantOut:           gold,
 		},
