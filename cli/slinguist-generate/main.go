@@ -3,9 +3,8 @@ package main
 import (
 	"io/ioutil"
 	"log"
-	"os"
 
-	"github.com/src-d/simple-linguist/cli/slinguist-generate/generator"
+	"srcd.works/simple-linguist.v1/cli/slinguist-generate/generator"
 )
 
 const (
@@ -25,55 +24,23 @@ const (
 func main() {
 	commit, err := getCommit(commitPath)
 	if err != nil {
-		log.Println("couldn't find commit")
+		log.Printf("couldn't find commit: %v", err)
 	}
 
-	// generateFile(languagesYAML, langFile, languagesTmplPath, languagesTmpl, commit, generate.Languages)
-	generateFile(heuristicsRuby, "/tmp/content.go", contentTmplPath, contentTmpl, commit, generator.Heuristics)
+	if err := generator.FromFile(languagesYAML, langFile, languagesTmplPath, languagesTmpl, commit, generator.Languages); err != nil {
+		log.Println(err)
+	}
+
+	if err := generator.FromFile(heuristicsRuby, contentFile, contentTmplPath, contentTmpl, commit, generator.Heuristics); err != nil {
+		log.Println(err)
+	}
 }
 
 func getCommit(path string) (string, error) {
-	file, err := os.Open(path)
+	commit, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
 
-	buf, err := ioutil.ReadAll(file)
-	if err != nil {
-		return "", err
-	}
-
-	return string(buf), nil
-}
-
-func generateFile(fileToParsePath, outPath, tmplPath, tmpl, commit string, generate generator.Func) {
-	outFile, err := os.Create(outPath)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	buf, err := loadFile(fileToParsePath)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	if err := generate(outFile, buf, tmplPath, tmpl, commit); err != nil {
-		log.Println(err)
-	}
-}
-
-func loadFile(filePath string) ([]byte, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	buf, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
+	return string(commit), nil
 }

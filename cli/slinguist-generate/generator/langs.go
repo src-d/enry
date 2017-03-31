@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"strings"
@@ -15,22 +16,23 @@ var (
 )
 
 // Languages read from buf and builds languages.go file from languagesTmplPath.
-func Languages(out io.Writer, buf []byte, languagesTmplPath, languagesTmpl, commit string) error {
+func Languages(data []byte, languagesTmplPath, languagesTmplName, commit string) ([]byte, error) {
 	var yamlSlice yaml.MapSlice
-	if err := yaml.Unmarshal(buf, &yamlSlice); err != nil {
-		return err
+	if err := yaml.Unmarshal(data, &yamlSlice); err != nil {
+		return nil, err
 	}
 
 	languagesByExtension, err := buildExtensionLanguageMap(yamlSlice)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := executeTemplate(out, languagesByExtension, languagesTmplPath, languagesTmpl, commit); err != nil {
-		return err
+	buf := &bytes.Buffer{}
+	if err := executeLanguagesTemplate(buf, languagesByExtension, languagesTmplPath, languagesTmplName, commit); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return buf.Bytes(), nil
 }
 
 func buildExtensionLanguageMap(yamlSlice yaml.MapSlice) (map[string][]string, error) {
@@ -75,7 +77,7 @@ func fillMap(extensionLangs map[string][]string, lang string, extensions []strin
 	}
 }
 
-func executeTemplate(out io.Writer, languagesByExtension map[string][]string, languagesTmplPath, languagesTmpl, commit string) error {
+func executeLanguagesTemplate(out io.Writer, languagesByExtension map[string][]string, languagesTmplPath, languagesTmpl, commit string) error {
 	fmap := template.FuncMap{
 		"getCommit":         func() string { return commit },
 		"formatStringSlice": func(slice []string) string { return `"` + strings.Join(slice, `","`) + `"` },

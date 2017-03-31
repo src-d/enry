@@ -2,7 +2,7 @@ package slinguist
 
 // CODE GENERATED AUTOMATICALLY WITH github.com/src-d/simple-linguist/cli/slinguist-generate
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: 76816a9eb2a9fc0ba440067e1d4dd8fbc62349e5
+// Extracted from github/linguist commit: fe8b44ab8a225b1ffa75b983b916ea22fee5b6f7
 
 var languagesByExtension = map[string][]string{
 	".1":                   {"Roff"},
@@ -484,7 +484,9 @@ var languagesByExtension = map[string][]string{
 	".maxproj":             {"Max"},
 	".mcr":                 {"MAXScript"},
 	".md":                  {"GCC Machine Description", "Markdown"},
+	".mdown":               {"Markdown"},
 	".mdpolicy":            {"XML"},
+	".mdwn":                {"Markdown"},
 	".me":                  {"Roff"},
 	".mediawiki":           {"MediaWiki"},
 	".meta":                {"Unity3D Asset"},

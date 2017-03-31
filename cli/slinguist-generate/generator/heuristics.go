@@ -4,45 +4,113 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
+	"text/template"
 )
+
+// Heuristics read from buf and builds content.go file from contentTmplPath.
+func Heuristics(heuristics []byte, contentTmplPath, contentTmplName, commit string) ([]byte, error) {
+	disambiguators, err := getDisambiguators(heuristics)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	if err := executeContentTemplate(buf, disambiguators, contentTmplPath, contentTmplName, commit); err != nil {
+		return nil, err
+	}
+
+	// debugJSON(disambiguators)
+
+	return buf.Bytes(), nil
+}
+
+func debugJSON(disambiguators []*disambiguator) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "\t")
+	if err := enc.Encode(disambiguators); err != nil {
+		log.Println(err)
+	}
+}
+
+const unknownLanguage = "OtherLanguage"
 
 var (
-	disambLine  = regexp.MustCompile(`^(\s*)disambiguate`)
-	definedRegs = make(map[string]string)
+	disambLine       = regexp.MustCompile(`^(\s*)disambiguate`)
+	definedRegs      = make(map[string]string)
+	seenExtensions   = map[string]bool{}
+	illegalCharacter = map[string]string{
+		"#": "Sharp",
+		"+": "Plus",
+		"-": "Dash",
+	}
 )
-
-type languageHeuristics struct {
-	Language       string   `json:"language,omitempty"`
-	Heuristics     []string `json:"heuristics,omitempty"`
-	LogicRelations []string `json:"logic_relations,omitempty"`
-}
 
 type disambiguator struct {
 	Extension string
 	Languages []*languageHeuristics
 }
 
-// Heuristics read from buf and builds content.go file from contentTmplPath.
-func Heuristics(out io.Writer, heuristics []byte, contentTmplPath, contentTmpl, commit string) error {
-	disambiguators, err := getDisambiguators(heuristics)
-	if err != nil {
-		return err
+func (d *disambiguator) setHeuristicsNames() {
+	for _, lang := range d.Languages {
+		for i, heuristic := range lang.Heuristics {
+			name := buildName(d.Extension, lang.Language, i)
+			heuristic.Name = name
+		}
+	}
+}
+
+func buildName(extension, language string, id int) string {
+	extension = strings.TrimPrefix(extension, `.`)
+	language = strings.Join(strings.Fields(language), ``)
+	name := strings.Join([]string{extension, language, "Matcher", strconv.Itoa(id)}, `_`)
+	for k, v := range illegalCharacter {
+		if strings.Contains(name, k) {
+			name = strings.Replace(name, k, v, -1)
+		}
 	}
 
-	// debug
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "\t")
-	if err := enc.Encode(disambiguators); err != nil {
-		return err
-	}
-	//
+	return name
+}
 
-	return nil
+type languageHeuristics struct {
+	Language       string       `json:"language,omitempty"`
+	Heuristics     []*heuristic `json:"heuristics,omitempty"`
+	LogicRelations []string     `json:"logic_relations,omitempty"`
+}
+
+func (l *languageHeuristics) clone() (*languageHeuristics, error) {
+	language := l.Language
+	logicRels := make([]string, len(l.LogicRelations))
+	if copy(logicRels, l.LogicRelations) != len(l.LogicRelations) {
+		return nil, fmt.Errorf("error copying logic relations")
+	}
+
+	heuristics := make([]*heuristic, 0, len(l.Heuristics))
+	for _, h := range l.Heuristics {
+		heuristic := *h
+		heuristics = append(heuristics, &heuristic)
+	}
+
+	clone := &languageHeuristics{
+		Language:       language,
+		Heuristics:     heuristics,
+		LogicRelations: logicRels,
+	}
+
+	return clone, nil
+}
+
+type heuristic struct {
+	Name   string `json:"name,omitempty"`
+	Regexp string `json:"regexp,omitempty"`
 }
 
 // A disambiguate block looks like:
@@ -104,55 +172,75 @@ func parseDisambiguators(line string, buf *bufio.Scanner) ([]*disambiguator, err
 	for _, v := range splitted {
 		if strings.HasPrefix(v, `"`) {
 			extension := strings.Trim(v, `",`)
-			d := &disambiguator{Extension: extension}
-			disambList = append(disambList, d)
+			if _, ok := seenExtensions[extension]; !ok {
+				d := &disambiguator{Extension: extension}
+				disambList = append(disambList, d)
+				seenExtensions[extension] = true
+			}
 		}
 	}
 
-	lh, err := getLanguagesHeuristics(buf)
+	langsHeuristics, err := getLanguagesHeuristics(buf)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, v := range disambList {
-		v.Languages = lh
+	for i, disamb := range disambList {
+		lh := langsHeuristics
+		if i != 0 {
+			lh = cloneLanguagesHeuristics(langsHeuristics)
+		}
+
+		disamb.Languages = lh
+		disamb.setHeuristicsNames()
 	}
 
 	return disambList, nil
 }
 
+func cloneLanguagesHeuristics(list []*languageHeuristics) []*languageHeuristics {
+	cloneList := make([]*languageHeuristics, 0, len(list))
+	for _, langHeu := range list {
+		clone, _ := langHeu.clone()
+		cloneList = append(cloneList, clone)
+	}
+
+	return cloneList
+}
+
 func getLanguagesHeuristics(buf *bufio.Scanner) ([]*languageHeuristics, error) {
-	langs := make([][]string, 0, 2)
-	regs := make([][]string, 0, 1)
-	logicRels := make([][]string, 0, 1)
+	langsList := make([][]string, 0, 2)
+	heuristicsList := make([][]*heuristic, 0, 1)
+	logicRelsList := make([][]string, 0, 1)
 
 	lastWasMatch := false
 	for buf.Scan() {
 		line := buf.Text()
-		if strings.Contains(line, "end") {
+		if strings.TrimSpace(line) == "end" {
 			break
 		}
 
 		if hasRegExp(line) {
 			line := cleanRegExpLine(line)
 
-			lr := getLogicRelations(line)
-			logicRels = append(logicRels, lr)
-
-			r := getRegExp(line)
+			logicRels := getLogicRelations(line)
+			heuristics := getHeuristics(line)
 			if lastWasMatch {
-				i := len(regs) - 1
-				regs[i] = append(regs[i], r...)
+				i := len(heuristicsList) - 1
+				heuristicsList[i] = append(heuristicsList[i], heuristics...)
+				i = len(logicRelsList) - 1
+				logicRelsList[i] = append(logicRelsList[i], logicRels...)
 			} else {
-				regs = append(regs, r)
+				heuristicsList = append(heuristicsList, heuristics)
+				logicRelsList = append(logicRelsList, logicRels)
 			}
 
 			lastWasMatch = true
 		}
 
 		if strings.Contains(line, "Language") {
-			l := getLanguages(line)
-			langs = append(langs, l)
+			langs := getLanguages(line)
+			langsList = append(langsList, langs)
 			lastWasMatch = false
 		}
 
@@ -162,7 +250,7 @@ func getLanguagesHeuristics(buf *bufio.Scanner) ([]*languageHeuristics, error) {
 		return nil, err
 	}
 
-	langsHeuristics := buildLanguagesHeuristics(langs, regs, logicRels)
+	langsHeuristics := buildLanguagesHeuristics(langsList, heuristicsList, logicRelsList)
 	return langsHeuristics, nil
 }
 
@@ -171,9 +259,10 @@ func hasRegExp(line string) bool {
 }
 
 func cleanRegExpLine(line string) string {
-	line = strings.TrimSpace(line)
-	line = strings.TrimPrefix(line, "if ")
-	line = strings.TrimPrefix(line, "elsif ")
+	if strings.Contains(line, "if ") {
+		line = line[strings.Index(line, `if `)+3:]
+	}
+
 	line = strings.TrimSpace(line)
 	line = strings.TrimPrefix(line, `(`)
 	if strings.Contains(line, "))") {
@@ -203,30 +292,32 @@ func getLogicRelations(line string) []string {
 	return rels
 }
 
-func getRegExp(line string) []string {
+func getHeuristics(line string) []*heuristic {
 	splitted := splitByLogicOps(line)
-	regs := make([]string, 0, len(splitted))
+	heuristics := make([]*heuristic, 0, len(splitted))
 	for _, v := range splitted {
 		v = strings.TrimSpace(v)
+		var reg string
 
 		if strings.Contains(v, ".match") {
-			r := v[:strings.Index(v, ".match")]
-			r = replaceRegexpVariables(r)
-			regs = append(regs, r)
+			reg = v[:strings.Index(v, ".match")]
+			reg = replaceRegexpVariables(reg)
 		}
 
 		if strings.Contains(v, ".include?") {
-			r := includeToRegExp(v)
-			regs = append(regs, r)
+			reg = includeToRegExp(v)
 		}
 
 		if strings.Contains(v, ".empty?") {
-			r := `/^$/`
-			regs = append(regs, r)
+			reg = `/^$/`
+		}
+
+		if reg != "" {
+			heuristics = append(heuristics, &heuristic{Regexp: reg})
 		}
 	}
 
-	return regs
+	return heuristics
 }
 
 func splitByLogicOps(line string) []string {
@@ -273,17 +364,17 @@ func trimLanguage(enclosedLang string) string {
 	return lang
 }
 
-func buildLanguagesHeuristics(langs, regs, logicRels [][]string) []*languageHeuristics {
-	langsHeuristics := make([]*languageHeuristics, 0, len(langs))
-	for i, langSlice := range langs {
-		var heuristics []string
-		if i < len(regs) {
-			heuristics = regs[i]
+func buildLanguagesHeuristics(langsList [][]string, heuristicsList [][]*heuristic, logicRelsList [][]string) []*languageHeuristics {
+	langsHeuristics := make([]*languageHeuristics, 0, len(langsList))
+	for i, langSlice := range langsList {
+		var heuristics []*heuristic
+		if i < len(heuristicsList) {
+			heuristics = heuristicsList[i]
 		}
 
 		var rels []string
-		if i < len(logicRels) {
-			rels = logicRels[i]
+		if i < len(logicRelsList) {
+			rels = logicRelsList[i]
 		}
 
 		for _, lang := range langSlice {
@@ -298,4 +389,63 @@ func buildLanguagesHeuristics(langs, regs, logicRels [][]string) []*languageHeur
 	}
 
 	return langsHeuristics
+}
+
+func executeContentTemplate(out io.Writer, disambiguators []*disambiguator, contentTmplPath, contentTmpl, commit string) error {
+	fmap := template.FuncMap{
+		"getCommit":            func() string { return commit },
+		"getAllHeuristics":     getAllHeuristics,
+		"returnUnsafeLanguage": returnUnsafeLanguage,
+		"avoidLanguage":        avoidLanguage,
+	}
+
+	t := template.Must(template.New(contentTmpl).Funcs(fmap).ParseFiles(contentTmplPath))
+	if err := t.Execute(out, disambiguators); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getAllHeuristics(disambiguators []*disambiguator) []*heuristic {
+	heuristics := make([]*heuristic, 0)
+	for _, disamb := range disambiguators {
+		for _, lang := range disamb.Languages {
+			if !avoidLanguage(lang) {
+				heuristics = append(heuristics, lang.Heuristics...)
+			}
+		}
+	}
+
+	return heuristics
+}
+
+func avoidLanguage(lang *languageHeuristics) bool {
+	// necessary to avoid corner cases
+	for _, heuristic := range lang.Heuristics {
+		if containsInvalidRegexp(heuristic.Regexp) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func containsInvalidRegexp(reg string) bool {
+	return reg == `/(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
+		reg == `/(?<!\S)\.(include|globa?l)\s/` ||
+		reg == `/(?<!\/\*)(\A|\n)\s*\.[A-Za-z]/`
+}
+
+func returnUnsafeLanguage(langsHeuristics []*languageHeuristics) string {
+	// at the moment, only returns one string although might be exists several language to return as a []string.
+	unsafeLang := unknownLanguage
+	for _, langHeu := range langsHeuristics {
+		if len(langHeu.Heuristics) == 0 {
+			unsafeLang = `"` + langHeu.Language + `"`
+			break
+		}
+	}
+
+	return unsafeLang
 }
