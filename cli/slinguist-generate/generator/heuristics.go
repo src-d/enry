@@ -3,11 +3,8 @@ package generator
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -26,18 +23,7 @@ func Heuristics(heuristics []byte, contentTmplPath, contentTmplName, commit stri
 		return nil, err
 	}
 
-	// debugJSON(disambiguators)
-
 	return buf.Bytes(), nil
-}
-
-func debugJSON(disambiguators []*disambiguator) {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "\t")
-	if err := enc.Encode(disambiguators); err != nil {
-		log.Println(err)
-	}
 }
 
 const unknownLanguage = "OtherLanguage"
@@ -45,7 +31,6 @@ const unknownLanguage = "OtherLanguage"
 var (
 	disambLine       = regexp.MustCompile(`^(\s*)disambiguate`)
 	definedRegs      = make(map[string]string)
-	seenExtensions   = map[string]bool{}
 	illegalCharacter = map[string]string{
 		"#": "Sharp",
 		"+": "Plus",
@@ -54,8 +39,8 @@ var (
 )
 
 type disambiguator struct {
-	Extension string
-	Languages []*languageHeuristics
+	Extension string                `json:"extension,omitempty"`
+	Languages []*languageHeuristics `json:"languages,omitempty"`
 }
 
 func (d *disambiguator) setHeuristicsNames() {
@@ -128,12 +113,13 @@ type heuristic struct {
 // 	end
 // end
 func getDisambiguators(heuristics []byte) ([]*disambiguator, error) {
+	seenExtensions := map[string]bool{}
 	buf := bufio.NewScanner(bytes.NewReader(heuristics))
 	disambiguators := make([]*disambiguator, 0, 50)
 	for buf.Scan() {
 		line := buf.Text()
 		if disambLine.MatchString(line) {
-			d, err := parseDisambiguators(line, buf)
+			d, err := parseDisambiguators(line, buf, seenExtensions)
 			if err != nil {
 				return nil, err
 			}
@@ -165,7 +151,7 @@ func lookForRegexpVariables(line string) {
 	}
 }
 
-func parseDisambiguators(line string, buf *bufio.Scanner) ([]*disambiguator, error) {
+func parseDisambiguators(line string, buf *bufio.Scanner, seenExtensions map[string]bool) ([]*disambiguator, error) {
 	disambList := make([]*disambiguator, 0, 2)
 	splitted := strings.Fields(line)
 
