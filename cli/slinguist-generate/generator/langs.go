@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	// ErrExtensionsNotFound is the error returned if a yaml.MapSlice doesn't contain a key named extField.
+	// ErrExtensionsNotFound is the error returned if data parsed doesn't contain extensions.
 	ErrExtensionsNotFound = errors.New("extensions not found")
 )
 
-// Languages read from buf and builds languages.go file from languagesTmplPath.
+// Languages reads from buf and builds languages.go file from languagesTmplPath.
 func Languages(data []byte, languagesTmplPath, languagesTmplName, commit string) ([]byte, error) {
 	var yamlSlice yaml.MapSlice
 	if err := yaml.Unmarshal(data, &yamlSlice); err != nil {
