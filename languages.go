@@ -2,7 +2,7 @@ package slinguist
 
 // CODE GENERATED AUTOMATICALLY WITH github.com/src-d/simple-linguist/cli/slinguist-generate
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: 1a9ff6ed2e16e9af9e9d3bc6817ac46eb3421e00
+// Extracted from github/linguist commit: 30fd2af69fd3d3fcdc6110feec49cf033bd4601a
 
 var languagesByExtension = map[string][]string{
 	".1":                   {"Roff"},

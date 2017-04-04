@@ -295,10 +295,11 @@ func getHeuristics(line string) []*heuristic {
 		}
 
 		if strings.Contains(v, ".empty?") {
-			reg = `/^$/`
+			reg = `^$`
 		}
 
 		if reg != "" {
+			reg = convToValidRegexp(reg)
 			heuristics = append(heuristics, &heuristic{Regexp: reg})
 		}
 	}
@@ -324,6 +325,41 @@ func replaceRegexpVariables(reg string) string {
 	}
 
 	return repl
+}
+
+func convToValidRegexp(reg string) string {
+	// example: `/^(\s*)(<Project|<Import|<Property|<?xml|xmlns)/i``
+	// Ruby modifier "m" matches multiple lines, recognizing newlines as normal characters, Go use flag "s" for that.
+	const (
+		caseSensitive = "i"
+		matchEOL      = "s"
+
+		rubyCaseSensitive = "i"
+		rubyMultiLine     = "m"
+	)
+
+	reg = strings.TrimPrefix(reg, `/`)
+	flags := "(?m"
+	lastSlash := strings.LastIndex(reg, `/`)
+	if lastSlash == -1 {
+		return flags + ")" + reg
+	}
+
+	specialChars := reg[lastSlash:]
+	reg = reg[:lastSlash]
+	if lastSlash == len(reg)-1 {
+		return flags + ")" + reg
+	}
+
+	if strings.Contains(specialChars, rubyCaseSensitive) {
+		flags = flags + caseSensitive
+	}
+
+	if strings.Contains(specialChars, rubyMultiLine) {
+		flags = flags + matchEOL
+	}
+
+	return flags + ")" + reg
 }
 
 func includeToRegExp(include string) string {
@@ -418,9 +454,14 @@ func avoidLanguage(lang *languageHeuristics) bool {
 }
 
 func containsInvalidRegexp(reg string) bool {
-	return reg == `/(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
-		reg == `/(?<!\S)\.(include|globa?l)\s/` ||
-		reg == `/(?<!\/\*)(\A|\n)\s*\.[A-Za-z]/`
+	return strings.Contains(reg, `(?<`) || strings.Contains(reg, `\1`)
+	// return reg == `(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
+	// 	reg == `(?<!\S)\.(include|globa?l)\s` ||
+	// 	reg == `(?<!\/\*)(\A|\n)\s*\.[A-Za-z]`
+
+	// return reg == `/(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
+	// 	reg == `/(?<!\S)\.(include|globa?l)\s/` ||
+	// 	reg == `/(?<!\/\*)(\A|\n)\s*\.[A-Za-z]/`
 }
 
 func returnUnsafeLanguage(langsHeuristics []*languageHeuristics) string {
