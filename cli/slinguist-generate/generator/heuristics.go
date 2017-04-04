@@ -456,36 +456,33 @@ func avoidLanguage(lang *languageHeuristics) bool {
 
 func containsInvalidRegexp(reg string) bool {
 	return strings.Contains(reg, `(?<`) || strings.Contains(reg, `\1`)
-	// return reg == `(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
-	// 	reg == `(?<!\S)\.(include|globa?l)\s` ||
-	// 	reg == `(?<!\/\*)(\A|\n)\s*\.[A-Za-z]`
-
-	// return reg == `/(?:\/\/|("|')use strict\1|export\s+default\s|\/\*.*?\*\/)/m` ||
-	// 	reg == `/(?<!\S)\.(include|globa?l)\s/` ||
-	// 	reg == `/(?<!\/\*)(\A|\n)\s*\.[A-Za-z]/`
 }
 
 func returnLanguage(langsHeuristics []*languageHeuristics) string {
-	// at the moment, only returns one string although might be exists several language to return as a []string.
-	lang := unknownLanguage
-	for _, langHeu := range langsHeuristics {
-		if len(langHeu.Heuristics) == 0 {
-			lang = `"` + langHeu.Language + `"`
-			break
-		}
-	}
-
+	lang, _ := returnLangAndSafe(langsHeuristics)
 	return lang
 }
 
 func safeLanguage(langsHeuristics []*languageHeuristics) bool {
-	var safe bool
+	_, safe := returnLangAndSafe(langsHeuristics)
+	return safe
+}
+
+func returnLangAndSafe(langsHeuristics []*languageHeuristics) (string, bool) {
+	// at the moment, only returns one string although might be exists several language to return as a []string.
+	langs := make([]string, 0)
 	for _, langHeu := range langsHeuristics {
-		safe = len(langHeu.Heuristics) == 0
-		if safe {
-			break
+		if len(langHeu.Heuristics) == 0 {
+			langs = append(langs, `"`+langHeu.Language+`"`)
 		}
 	}
 
-	return safe
+	lang := unknownLanguage
+	safe := false
+	if len(langs) != 0 {
+		lang = langs[0]
+		safe = len(langs) == 1
+	}
+
+	return lang, safe
 }
