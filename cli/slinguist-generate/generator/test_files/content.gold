@@ -48,7 +48,7 @@ var matchers = map[string]languageMatcher{
 			return "Modula-2", true
 		}
 	
-		return "Linux Kernel Module", true
+		return "Linux Kernel Module", false
 	},
 	".pro": func(i []byte) (string, bool) {
 		if pro_Prolog_Matcher_0.Match(i) {
