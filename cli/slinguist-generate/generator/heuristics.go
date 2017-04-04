@@ -415,10 +415,11 @@ func buildLanguagesHeuristics(langsList [][]string, heuristicsList [][]*heuristi
 
 func executeContentTemplate(out io.Writer, disambiguators []*disambiguator, contentTmplPath, contentTmpl, commit string) error {
 	fmap := template.FuncMap{
-		"getCommit":            func() string { return commit },
-		"getAllHeuristics":     getAllHeuristics,
-		"returnUnsafeLanguage": returnUnsafeLanguage,
-		"avoidLanguage":        avoidLanguage,
+		"getCommit":        func() string { return commit },
+		"getAllHeuristics": getAllHeuristics,
+		"returnLanguage":   returnLanguage,
+		"safeLanguage":     safeLanguage,
+		"avoidLanguage":    avoidLanguage,
 	}
 
 	t := template.Must(template.New(contentTmpl).Funcs(fmap).ParseFiles(contentTmplPath))
@@ -464,15 +465,27 @@ func containsInvalidRegexp(reg string) bool {
 	// 	reg == `/(?<!\/\*)(\A|\n)\s*\.[A-Za-z]/`
 }
 
-func returnUnsafeLanguage(langsHeuristics []*languageHeuristics) string {
+func returnLanguage(langsHeuristics []*languageHeuristics) string {
 	// at the moment, only returns one string although might be exists several language to return as a []string.
-	unsafeLang := unknownLanguage
+	lang := unknownLanguage
 	for _, langHeu := range langsHeuristics {
 		if len(langHeu.Heuristics) == 0 {
-			unsafeLang = `"` + langHeu.Language + `"`
+			lang = `"` + langHeu.Language + `"`
 			break
 		}
 	}
 
-	return unsafeLang
+	return lang
+}
+
+func safeLanguage(langsHeuristics []*languageHeuristics) bool {
+	var safe bool
+	for _, langHeu := range langsHeuristics {
+		safe = len(langHeu.Heuristics) == 0
+		if safe {
+			break
+		}
+	}
+
+	return safe
 }

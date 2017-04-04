@@ -39,7 +39,7 @@ var matchers = map[string]languageMatcher{
 			return "Groff", true
 		}
 	
-		return "MAXScript", false
+		return "MAXScript", true
 	},
 	".mod": func(i []byte) (string, bool) {
 		if mod_XML_Matcher_0.Match(i) {
@@ -48,7 +48,7 @@ var matchers = map[string]languageMatcher{
 			return "Modula-2", true
 		}
 	
-		return "Linux Kernel Module", false
+		return "Linux Kernel Module", true
 	},
 	".pro": func(i []byte) (string, bool) {
 		if pro_Prolog_Matcher_0.Match(i) {
@@ -66,16 +66,16 @@ var matchers = map[string]languageMatcher{
 	}
 
 var (
-    asc_PublicKey_Matcher_0 = regexp.MustCompile(`/^(----[- ]BEGIN|ssh-(rsa|dss)) /`)
-    asc_AsciiDoc_Matcher_0 = regexp.MustCompile(`/^[=-]+(\s|\n)|{{[A-Za-z]/`)
-    asc_AGSScript_Matcher_0 = regexp.MustCompile(`/^(\/\/.+|((import|export)\s+)?(function|int|float|char)\s+((room|repeatedly|on|game)_)?([A-Za-z]+[A-Za-z_0-9]+)\s*[;\(])/`)
-    ms_Groff_Matcher_0 = regexp.MustCompile(`/^[.'][a-z][a-z](\s|$)/i`)
-    mod_XML_Matcher_0 = regexp.MustCompile(`<!ENTITY `)
-    mod_ModulaDash2_Matcher_0 = regexp.MustCompile(`/^\s*MODULE [\w\.]+;/i`)
-    mod_ModulaDash2_Matcher_1 = regexp.MustCompile(`/^\s*END [\w\.]+;/i`)
-    pro_Prolog_Matcher_0 = regexp.MustCompile(`/^[^#]+:-/`)
-    pro_INI_Matcher_0 = regexp.MustCompile(`last_client=`)
-    pro_QMake_Matcher_0 = regexp.MustCompile(`HEADERS`)
-    pro_QMake_Matcher_1 = regexp.MustCompile(`SOURCES`)
-    pro_IDL_Matcher_0 = regexp.MustCompile(`/^\s*function[ \w,]+$/`)
+    asc_PublicKey_Matcher_0 = regexp.MustCompile(`(?m)^(----[- ]BEGIN|ssh-(rsa|dss)) `)
+    asc_AsciiDoc_Matcher_0 = regexp.MustCompile(`(?m)^[=-]+(\s|\n)|{{[A-Za-z]`)
+    asc_AGSScript_Matcher_0 = regexp.MustCompile(`(?m)^(\/\/.+|((import|export)\s+)?(function|int|float|char)\s+((room|repeatedly|on|game)_)?([A-Za-z]+[A-Za-z_0-9]+)\s*[;\(])`)
+    ms_Groff_Matcher_0 = regexp.MustCompile(`(?mi)^[.'][a-z][a-z](\s|$)`)
+    mod_XML_Matcher_0 = regexp.MustCompile(`(?m)<!ENTITY `)
+    mod_ModulaDash2_Matcher_0 = regexp.MustCompile(`(?mi)^\s*MODULE [\w\.]+;`)
+    mod_ModulaDash2_Matcher_1 = regexp.MustCompile(`(?mi)^\s*END [\w\.]+;`)
+    pro_Prolog_Matcher_0 = regexp.MustCompile(`(?m)^[^#]+:-`)
+    pro_INI_Matcher_0 = regexp.MustCompile(`(?m)last_client=`)
+    pro_QMake_Matcher_0 = regexp.MustCompile(`(?m)HEADERS`)
+    pro_QMake_Matcher_1 = regexp.MustCompile(`(?m)SOURCES`)
+    pro_IDL_Matcher_0 = regexp.MustCompile(`(?m)^\s*function[ \w,]+$`)
     )

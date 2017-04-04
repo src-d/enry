@@ -2,7 +2,7 @@ package slinguist
 
 // CODE GENERATED AUTOMATICALLY WITH github.com/src-d/simple-linguist/cli/slinguist-generate
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: 30fd2af69fd3d3fcdc6110feec49cf033bd4601a
+// Extracted from github/linguist commit: 78425573efc5b3e84e9d4cb73d5b4250d1320921
 
 import (
 	"path/filepath"
@@ -48,7 +48,7 @@ var matchers = map[string]languageMatcher{
 			return "XML", true
 		}
 
-		return "Text", false
+		return "Text", true
 	},
 	".ch": func(i []byte) (string, bool) {
 		if ch_xBase_Matcher_0.Match(i) {
@@ -138,7 +138,7 @@ var matchers = map[string]languageMatcher{
 			return "Frege", true
 		}
 
-		return "Text", false
+		return "Text", true
 	},
 	".fs": func(i []byte) (string, bool) {
 		if fs_Forth_Matcher_0.Match(i) {
@@ -196,7 +196,7 @@ var matchers = map[string]languageMatcher{
 			return "LoomScript", true
 		}
 
-		return "LiveScript", false
+		return "LiveScript", true
 	},
 	".lsp": func(i []byte) (string, bool) {
 		if lsp_CommonLisp_Matcher_0.Match(i) {
@@ -242,7 +242,7 @@ var matchers = map[string]languageMatcher{
 			return "GCC machine description", true
 		}
 
-		return "Markdown", false
+		return "Markdown", true
 	},
 	".ml": func(i []byte) (string, bool) {
 		if ml_OCaml_Matcher_0.Match(i) {
@@ -260,14 +260,14 @@ var matchers = map[string]languageMatcher{
 			return "Modula-2", true
 		}
 
-		return "Linux Kernel Module", false
+		return "Linux Kernel Module", true
 	},
 	".ms": func(i []byte) (string, bool) {
 		if ms_Groff_Matcher_0.Match(i) {
 			return "Groff", true
 		}
 
-		return "MAXScript", false
+		return "MAXScript", true
 	},
 	".n": func(i []byte) (string, bool) {
 		if n_Groff_Matcher_0.Match(i) {
@@ -290,7 +290,7 @@ var matchers = map[string]languageMatcher{
 			return "NL", true
 		}
 
-		return "NewLisp", false
+		return "NewLisp", true
 	},
 	".php": func(i []byte) (string, bool) {
 		if php_Hack_Matcher_0.Match(i) {
@@ -335,7 +335,7 @@ var matchers = map[string]languageMatcher{
 			return "Pod", true
 		}
 
-		return "Perl", false
+		return "Perl", true
 	},
 	".pro": func(i []byte) (string, bool) {
 		if pro_Prolog_Matcher_0.Match(i) {
@@ -382,7 +382,7 @@ var matchers = map[string]languageMatcher{
 			return "Python", true
 		}
 
-		return "Ren'Py", false
+		return "Ren'Py", true
 	},
 	".rs": func(i []byte) (string, bool) {
 		if rs_Rust_Matcher_0.Match(i) {
@@ -436,14 +436,14 @@ var matchers = map[string]languageMatcher{
 			return "XML", true
 		}
 
-		return "TypeScript", false
+		return "TypeScript", true
 	},
 	".tst": func(i []byte) (string, bool) {
 		if tst_GAP_Matcher_0.Match(i) {
 			return "GAP", true
 		}
 
-		return "Scilab", false
+		return "Scilab", true
 	},
 	".tsx": func(i []byte) (string, bool) {
 		if tsx_TypeScript_Matcher_0.Match(i) {

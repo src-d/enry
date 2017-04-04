@@ -39,7 +39,7 @@ var matchers = map[string]languageMatcher{
 		{{- end -}}
 		{{- end}}
 	
-		return {{ returnUnsafeLanguage $disambiguator.Languages }}, false
+		return {{ returnLanguage $disambiguator.Languages }}, {{ safeLanguage $disambiguator.Languages }}
 	},
 	{{ end -}}
 }
