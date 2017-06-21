@@ -2,7 +2,7 @@ package enry
 
 // CODE GENERATED AUTOMATICALLY WITH gopkg.in/src-d/enry.v1/internal/code-generator
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: b6460f8ed6b249281ada099ca28bd8f1230b8892
+// Extracted from github/linguist commit: 128abe353353a91cc0af01f68e8c244feb13ac80
 
 import (
 	"regexp"
@@ -295,14 +295,14 @@ var contentMatchers = map[string]languageMatcher{
 		} else if pl_Perl_Matcher_0.Match(i) {
 			return []string{"Perl"}
 		} else if pl_Perl6_Matcher_0.Match(i) {
-			return []string{"Perl6"}
+			return []string{"Perl 6"}
 		}
 
 		return nil
 	},
 	".pm": func(i []byte) []string {
 		if pm_Perl6_Matcher_0.Match(i) {
-			return []string{"Perl6"}
+			return []string{"Perl 6"}
 		} else if pm_Perl_Matcher_0.Match(i) {
 			return []string{"Perl"}
 		}
@@ -405,7 +405,7 @@ var contentMatchers = map[string]languageMatcher{
 		if t_Turing_Matcher_0.Match(i) {
 			return []string{"Turing"}
 		} else if t_Perl6_Matcher_0.Match(i) {
-			return []string{"Perl6"}
+			return []string{"Perl 6"}
 		} else if t_Perl_Matcher_0.Match(i) {
 			return []string{"Perl"}
 		}

@@ -2,7 +2,7 @@ package enry
 
 // CODE GENERATED AUTOMATICALLY WITH gopkg.in/src-d/enry.v1/internal/code-generator
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: b6460f8ed6b249281ada099ca28bd8f1230b8892
+// Extracted from github/linguist commit: 128abe353353a91cc0af01f68e8c244feb13ac80
 
 // languagesByAlias keeps alias for different languages and use the name of the languages as an alias too.
 // All the keys (alias or not) are written in lower case and the whitespaces has been replaced by underscores.
@@ -438,7 +438,7 @@ var languagesByAlias = map[string]string{
 	"pawn":                  "PAWN",
 	"pep8":                  "Pep8",
 	"perl":                  "Perl",
-	"perl6":                 "Perl6",
+	"perl_6":                "Perl 6",
 	"php":                   "PHP",
 	"pic":                   "Pic",
 	"pickle":                "Pickle",

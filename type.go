@@ -2,7 +2,7 @@ package enry
 
 // CODE GENERATED AUTOMATICALLY WITH gopkg.in/src-d/enry.v1/internal/code-generator
 // THIS FILE SHOULD NOT BE EDITED BY HAND
-// Extracted from github/linguist commit: b6460f8ed6b249281ada099ca28bd8f1230b8892
+// Extracted from github/linguist commit: 128abe353353a91cc0af01f68e8c244feb13ac80
 
 var languagesType = map[string]Type{
 	"1C Enterprise":    Programming,
@@ -302,7 +302,7 @@ var languagesType = map[string]Type{
 	"Pascal":                       Programming,
 	"Pep8":                         Programming,
 	"Perl":                         Programming,
-	"Perl6":                        Programming,
+	"Perl 6":                       Programming,
 	"Pic":                          Markup,
 	"Pickle":                       Data,
 	"PicoLisp":                     Programming,
