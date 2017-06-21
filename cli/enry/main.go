@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/src-d/enry.v1"
+	"github.com/src-d/enry"
 )
 
 func main() {
