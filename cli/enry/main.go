@@ -29,6 +29,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	enry.LoadGitAttributes()
+
 	errors := false
 	out := make(map[string][]string, 0)
 	err = filepath.Walk(root, func(path string, f os.FileInfo, err error) error {

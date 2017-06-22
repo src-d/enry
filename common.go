@@ -18,6 +18,7 @@ type Strategy func(filename string, content []byte, candidates []string) (langua
 
 // DefaultStrategies is the strategies' sequence GetLanguage uses to detect languages.
 var DefaultStrategies = []Strategy{
+	GetLanguagesByGitattributes,
 	GetLanguagesByModeline,
 	GetLanguagesByFilename,
 	GetLanguagesByShebang,
@@ -93,6 +94,12 @@ func GetLanguageByContent(content []byte) (language string, safe bool) {
 // DefaultClassifier, if no candidates are provided it returns OtherLanguage.
 func GetLanguageByClassifier(content []byte, candidates []string) (language string, safe bool) {
 	return getLanguageByStrategy(GetLanguagesByClassifier, "", content, candidates)
+}
+
+// GetLanguageByGitattributes returns the language assigned for a given regular expresion in .gitattributes.
+// This strategy needs to be initialized calling LoadGitattributes
+func GetLanguageByGitattributes(filename string) (language string, safe bool) {
+	return getLanguageByStrategy(GetLanguagesByGitattributes, filename, nil, nil)
 }
 
 func getLanguageByStrategy(strategy Strategy, filename string, content []byte, candidates []string) (string, bool) {
@@ -445,4 +452,21 @@ func GetLanguageByAlias(alias string) (lang string, ok bool) {
 	}
 
 	return
+}
+
+// GetLanguagesByGitattributes returns the language assigned in .gitattributes if the regular expresion
+// matchs with the filename
+func GetLanguagesByGitattributes(filename string, content []byte, candidates []string) []string {
+	return languageByGitattribute(filename)
+}
+
+func languageByGitattribute(filename string) []string {
+	languages := []string{}
+	for regExp, language := range languageGitattributes {
+		if regExp.MatchString(filename) {
+			return append(languages, language)
+		}
+	}
+
+	return languages
 }

@@ -3,10 +3,11 @@ package enry
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
-
-	"gopkg.in/src-d/enry.v1/data"
 )
 
 var (
@@ -25,8 +26,8 @@ var (
 		"XML": true, "JSON": true, "TOML": true, "YAML": true, "INI": true, "SQL": true,
 	}
 
-	gitAttributes      = map[string]bool{}
-	languageAttributes = map[string]string{}
+	gitattributes         = map[string]bool{}
+	languageGitattributes = map[*regexp.Regexp]string{}
 )
 
 // IsAuxiliaryLanguage returns whether or not lang is an auxiliary language.
@@ -49,30 +50,20 @@ func IsDotFile(path string) bool {
 
 // IsVendor returns whether or not path is a vendor path.
 func IsVendor(path string) bool {
-<<<<<<< HEAD
-	return data.VendorMatchers.Match(path)
-=======
-	val, ok := gitAttributes[path]
-	if ok {
+	if val, ok := gitattributes[path]; ok {
 		return val
 	}
 
 	return vendorMatchers.Match(path)
->>>>>>> 132a9bb... Added support for vendor and documentation attributes
 }
 
 // IsDocumentation returns whether or not path is a documentation path.
 func IsDocumentation(path string) bool {
-<<<<<<< HEAD
-	return data.DocumentationMatchers.Match(path)
-=======
-	val, ok := gitAttributes[path]
-	if ok {
+	if val, ok := gitattributes[path]; ok {
 		return val
 	}
 
 	return documentationMatchers.Match(path)
->>>>>>> 132a9bb... Added support for vendor and documentation attributes
 }
 
 const sniffLen = 8000
@@ -91,42 +82,82 @@ func IsBinary(data []byte) bool {
 	return true
 }
 
+// LoadGitattributes reads and parse the file .gitattributes wich overrides the standards strategies
+func LoadGitattributes() {
+	rawAttributes, err := loadGitattributes()
+	if err == nil && len(rawAttributes) > 0 {
+		parseAttributes(rawAttributes)
+	}
+}
+
 func loadGitattributes() (map[string]string, error) {
-	gitAttributes := map[string]string{}
+	gitattributes := map[string]string{}
 	data, err := ioutil.ReadFile(".gitattributes")
 	if err != nil {
+		if err != os.ErrNotExist {
+			log.Println(".gitattributes: " + err.Error())
+		}
+
 		return nil, err
 	}
-
-	if data != nil {
-		tokens := strings.Fields(string(data))
-		for i := 0; i < len(tokens); i = i + 2 {
-			gitAttributes[tokens[i]] = tokens[i+1]
+	if len(data) > 0 {
+		lines := strings.Split(string(data), "\n")
+		for _, line := range lines {
+			loadLine(line, gitattributes)
 		}
 	}
 
-	return gitAttributes, nil
+	return gitattributes, nil
+}
+
+func loadLine(line string, gitattributes map[string]string) {
+	tokens := strings.Fields(line)
+	if len(tokens) == 2 {
+		gitattributes[tokens[0]] = tokens[1]
+	} else {
+		log.Println(".gitattributes: Each line only can have a pair of elements\nE.g. /path/to/file attribute")
+	}
 }
 
 func parseAttributes(attributes map[string]string) {
 	for key, val := range attributes {
+		if isInGitattributes(key) {
+			log.Printf("You are overriding one of your previous lines %s", key)
+		}
 		switch {
 		case val == "enry-vendored" || val == "enry-documentation":
-			gitAttributes[key] = true
+			gitattributes[key] = true
 		case val == "enry-vendored=false" || val == "enry-documentation=false":
-			gitAttributes[key] = false
+			gitattributes[key] = false
 		case strings.Contains(val, "enry-language="):
-			tokens := strings.Split(val, "=")
-			if len(tokens) == 2 {
-				languageAttributes[key] = tokens[1]
-			}
+			processLanguageAttr(key, val)
+		default:
+			log.Printf("The matcher %s doesn't exists\n", val)
 		}
 	}
 }
 
-func init() {
-	rawAttributes, err := loadGitattributes()
-	if err == nil && len(rawAttributes) > 0 {
-		parseAttributes(rawAttributes)
+func isInGitattributes(key string) bool {
+	if _, ok := gitattributes[key]; ok {
+		return ok
+	}
+
+	regExp, err := regexp.Compile(key)
+	if err == nil {
+		if _, ok := languageGitattributes[regExp]; ok {
+			return ok
+		}
+	}
+
+	return false
+}
+
+func processLanguageAttr(regExpString string, attribute string) {
+	tokens := strings.Split(attribute, "=")
+	if len(tokens) == 2 {
+		regExp, err := regexp.Compile(regExpString)
+		if err == nil {
+			languageGitattributes[regExp] = tokens[1]
+		}
 	}
 }

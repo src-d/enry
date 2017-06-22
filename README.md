@@ -118,7 +118,7 @@ Note that even if enry's CLI is compatible with linguist's, its main point is th
 Development
 ------------
 
-*enry* re-uses parts of original [linguist](https://github.com/github/linguist) especially data in `languages.yml` to generate internal data structures. In oreder to update to latest upstream run
+*enry* re-uses parts of original [linguist](https://github.com/github/linguist) especially data in `languages.yml` to generate internal data structures. In order to update to latest upstream run
 
     make clean code-generate
 
@@ -170,6 +170,37 @@ to get time averages for main detection function and strategies for the whole sa
     make benchmarks-samples
 
 if you want see measures by sample file
+
+
+.gitAttributes
+--------------
+
+Like in linguist you can override the strategies via `.gitattributes` file.
+Add a `.gitattributes` file to the directory and use the enry matchers `enry-documentation`,`enry-language` or `enry-vendored` to do the override.
+
+#### Vendored code
+
+
+Use the `enry-vendored` attribute to vendor or un-vendor paths.
+
+```
+$cat .gitattributes
+this-is-a-vendor-directory/ enry-vendored
+this-is-not/ enry-vendored=false
+```
+#### Documentation
+
+Documentation works the same way as vendored code but using `enry-documentation` and `enry-documentation=false`.
+
+#### Language assignation
+
+If you want some files to be classified according to certain language use `enry-language=[language]`.
+
+```
+$cat .gitattributes
+.*\.go enry-language=MyFavouriteLanguage
+```
+Note, that the regular expression that match the file name should be one compatible with go, see: [Golang regexp](https://golang.org/pkg/regexp/).
 
 
 Why Enry?
