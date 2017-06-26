@@ -2,6 +2,8 @@ package enry
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -84,15 +86,15 @@ func IsBinary(data []byte) bool {
 
 // LoadGitattributes reads and parse the file .gitattributes wich overrides the standards strategies
 func LoadGitattributes() {
-	rawAttributes, err := loadGitattributes()
+	rawAttributes, err := loadGitattributes(".gitattributes")
 	if err == nil && len(rawAttributes) > 0 {
 		parseAttributes(rawAttributes)
 	}
 }
 
-func loadGitattributes() (map[string]string, error) {
+func loadGitattributes(name string) (map[string]string, error) {
 	gitattributes := map[string]string{}
-	data, err := ioutil.ReadFile(".gitattributes")
+	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		if err != os.ErrNotExist {
 			log.Println(".gitattributes: " + err.Error())
@@ -100,6 +102,7 @@ func loadGitattributes() (map[string]string, error) {
 
 		return nil, err
 	}
+
 	if len(data) > 0 {
 		lines := strings.Split(string(data), "\n")
 		for _, line := range lines {
@@ -110,54 +113,64 @@ func loadGitattributes() (map[string]string, error) {
 	return gitattributes, nil
 }
 
-func loadLine(line string, gitattributes map[string]string) {
+func loadLine(line string, gitattributes map[string]string) error {
 	tokens := strings.Fields(line)
 	if len(tokens) == 2 {
+		var err error
+		if isInside(tokens[0], gitattributes) {
+			err = errors.New(fmt.Sprintf("You are overriding one of your previous lines %s\n", tokens[0]))
+			log.Printf(err.Error())
+		}
+
 		gitattributes[tokens[0]] = tokens[1]
+		return err
 	} else {
-		log.Println(".gitattributes: Each line only can have a pair of elements\nE.g. /path/to/file attribute")
+		err := errors.New(".gitattributes: Each line only can have a pair of elements  E.g. path/to/file attribute")
+		log.Println(err.Error())
+
+		return err
 	}
 }
 
-func parseAttributes(attributes map[string]string) {
+func parseAttributes(attributes map[string]string) []error {
+	var errArray []error
 	for key, val := range attributes {
-		if isInGitattributes(key) {
-			log.Printf("You are overriding one of your previous lines %s", key)
-		}
 		switch {
 		case val == "enry-vendored" || val == "enry-documentation":
 			gitattributes[key] = true
 		case val == "enry-vendored=false" || val == "enry-documentation=false":
 			gitattributes[key] = false
 		case strings.Contains(val, "enry-language="):
-			processLanguageAttr(key, val)
+			err := processLanguageAttr(key, val)
+			if err != nil {
+				errArray = append(errArray, err)
+			}
 		default:
-			log.Printf("The matcher %s doesn't exists\n", val)
+			err := errors.New(fmt.Sprintf("The matcher %s doesn't exists\n", val))
+			errArray = append(errArray, err)
+			log.Printf(err.Error())
 		}
 	}
+
+	return errArray
 }
 
-func isInGitattributes(key string) bool {
+func isInside(key string, gitattributes map[string]string) bool {
 	if _, ok := gitattributes[key]; ok {
 		return ok
-	}
-
-	regExp, err := regexp.Compile(key)
-	if err == nil {
-		if _, ok := languageGitattributes[regExp]; ok {
-			return ok
-		}
 	}
 
 	return false
 }
 
-func processLanguageAttr(regExpString string, attribute string) {
-	tokens := strings.Split(attribute, "=")
-	if len(tokens) == 2 {
-		regExp, err := regexp.Compile(regExpString)
-		if err == nil {
-			languageGitattributes[regExp] = tokens[1]
-		}
+func processLanguageAttr(regExpString string, attribute string) error {
+	tokens := strings.SplitN(attribute, "=", 2)
+	regExp, err := regexp.Compile(regExpString)
+	if err != nil {
+		log.Printf(err.Error())
+		return err
 	}
+
+	languageGitattributes[regExp] = tokens[1]
+	return nil
 }
