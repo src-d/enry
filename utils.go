@@ -84,20 +84,20 @@ func IsBinary(data []byte) bool {
 	return true
 }
 
-// LoadGitattributes reads and parse the file .gitattributes wich overrides the standards strategies
+// LoadGitattributes reads and parses the file .gitattributes which overrides the standard strategies
 func LoadGitattributes() {
-	rawAttributes, err := loadGitattributes(".gitattributes")
+	rawAttributes, err := loadRawGitattributes(".gitattributes")
 	if err == nil && len(rawAttributes) > 0 {
 		parseAttributes(rawAttributes)
 	}
 }
 
-func loadGitattributes(name string) (map[string]string, error) {
+func loadRawGitattributes(name string) (map[string]string, error) {
 	gitattributes := map[string]string{}
 	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		if err != os.ErrNotExist {
-			log.Println(".gitattributes: " + err.Error())
+			log.Println(name + ": " + err.Error())
 		}
 
 		return nil, err
@@ -170,7 +170,12 @@ func processLanguageAttr(regExpString string, attribute string) error {
 		log.Printf(err.Error())
 		return err
 	}
+	lang, _ := GetLanguageByAlias(tokens[1])
+	if lang != OtherLanguage {
+		languageGitattributes[regExp] = lang
+	} else {
+		languageGitattributes[regExp] = tokens[1]
+	}
 
-	languageGitattributes[regExp] = tokens[1]
 	return nil
 }

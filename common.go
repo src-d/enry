@@ -96,7 +96,7 @@ func GetLanguageByClassifier(content []byte, candidates []string) (language stri
 	return getLanguageByStrategy(GetLanguagesByClassifier, "", content, candidates)
 }
 
-// GetLanguageByGitattributes returns the language assigned for a given regular expresion in .gitattributes.
+// GetLanguageByGitattributes returns the language assigned to a file for a given regular expresion in .gitattributes.
 // This strategy needs to be initialized calling LoadGitattributes
 func GetLanguageByGitattributes(filename string) (language string, safe bool) {
 	return getLanguageByStrategy(GetLanguagesByGitattributes, filename, nil, nil)
@@ -454,13 +454,9 @@ func GetLanguageByAlias(alias string) (lang string, ok bool) {
 	return
 }
 
-// GetLanguagesByGitattributes returns the language assigned in .gitattributes if the regular expresion
-// matchs with the filename
+// GetLanguagesByGitattributes returns a length 1 slice with the language assigned in .gitattributes if the regular expresion
+// matchs with the filename. It is comply with the signature to be a Strategy type.
 func GetLanguagesByGitattributes(filename string, content []byte, candidates []string) []string {
-	return languageByGitattribute(filename)
-}
-
-func languageByGitattribute(filename string) []string {
 	languages := []string{}
 	for regExp, language := range languageGitattributes {
 		if regExp.MatchString(filename) {

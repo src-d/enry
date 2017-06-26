@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	enry.LoadGitAttributes()
+	enry.LoadGitattributes()
 
 	errors := false
 	out := make(map[string][]string, 0)
