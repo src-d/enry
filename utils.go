@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"gopkg.in/src-d/enry.v1/data"
 )
 
 var (
@@ -28,9 +30,19 @@ var (
 		"XML": true, "JSON": true, "TOML": true, "YAML": true, "INI": true, "SQL": true,
 	}
 
-	gitattributes         = map[string]bool{}
-	languageGitattributes = map[*regexp.Regexp]string{}
+	vendorGitattributes        = map[string]bool{}
+	documentationGitattributes = map[string]bool{}
+	languageGitattributes      = map[*regexp.Regexp]string{}
 )
+
+type OverrideError struct {
+	attribute string
+	path      string
+}
+
+func (e *OverrideError) Error() string {
+	return fmt.Sprintf(".gitattributes: You are overriding a %s attribute of one of your previous lines %s\n", e.attribute, e.path)
+}
 
 // IsAuxiliaryLanguage returns whether or not lang is an auxiliary language.
 func IsAuxiliaryLanguage(lang string) bool {
@@ -52,20 +64,20 @@ func IsDotFile(path string) bool {
 
 // IsVendor returns whether or not path is a vendor path.
 func IsVendor(path string) bool {
-	if val, ok := gitattributes[path]; ok {
+	if val, ok := vendorGitattributes[path]; ok {
 		return val
 	}
 
-	return vendorMatchers.Match(path)
+	return data.VendorMatchers.Match(path)
 }
 
 // IsDocumentation returns whether or not path is a documentation path.
 func IsDocumentation(path string) bool {
-	if val, ok := gitattributes[path]; ok {
+	if val, ok := documentationGitattributes[path]; ok {
 		return val
 	}
 
-	return documentationMatchers.Match(path)
+	return data.DocumentationMatchers.Match(path)
 }
 
 const sniffLen = 8000
@@ -92,8 +104,8 @@ func LoadGitattributes() {
 	}
 }
 
-func loadRawGitattributes(name string) (map[string]string, error) {
-	gitattributes := map[string]string{}
+func loadRawGitattributes(name string) (map[string][]string, error) {
+	gitattributes := map[string][]string{}
 	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		if err != os.ErrNotExist {
@@ -113,54 +125,80 @@ func loadRawGitattributes(name string) (map[string]string, error) {
 	return gitattributes, nil
 }
 
-func loadLine(line string, gitattributes map[string]string) error {
+func loadLine(line string, gitattributes map[string][]string) error {
 	tokens := strings.Fields(line)
 	if len(tokens) == 2 {
-		var err error
-		if isInside(tokens[0], gitattributes) {
-			err = errors.New(fmt.Sprintf(".gitattributes: You are overriding one of your previous lines %s\n", tokens[0]))
-			log.Printf(err.Error())
-		}
 
-		gitattributes[tokens[0]] = tokens[1]
-		return err
-	} else {
+		gitattributes[tokens[0]] = append(gitattributes[tokens[0]], tokens[1])
+		return nil
+	} else if len(tokens) != 0 {
 		err := errors.New(".gitattributes: Each line only can have a pair of elements  E.g. path/to/file attribute")
 		log.Println(err.Error())
-
 		return err
 	}
+	return nil
 }
 
-func parseAttributes(attributes map[string]string) []error {
-	var errArray []error
-	for key, val := range attributes {
-		switch {
-		case val == "linguist-vendored" || val == "linguist-documentation":
-			gitattributes[key] = true
-		case val == "linguist-vendored=false" || val == "linguist-documentation=false":
-			gitattributes[key] = false
-		case strings.Contains(val, "linguist-language="):
-			err := processLanguageAttr(key, val)
+func parseAttributes(attributes map[string][]string) []error {
+	errArray := []error{}
+	for key, values := range attributes {
+		for _, val := range values {
+			err := parseAttribute(key, val)
 			if err != nil {
 				errArray = append(errArray, err)
 			}
-		default:
-			err := errors.New(fmt.Sprintf("gitattributes: The matcher %s doesn't exists\n", val))
-			errArray = append(errArray, err)
-			log.Printf(err.Error())
 		}
 	}
 
 	return errArray
 }
 
-func isInside(key string, gitattributes map[string]string) bool {
-	if _, ok := gitattributes[key]; ok {
-		return ok
+func parseAttribute(key string, attribute string) error {
+	var err error
+	switch {
+	case strings.Contains(attribute, "linguist-vendored"):
+		err = processVendorAttr(key, attribute)
+	case strings.Contains(attribute, "linguist-documentation"):
+		err = processDocumentationAttr(key, attribute)
+	case strings.Contains(attribute, "linguist-language="):
+		err = processLanguageAttr(key, attribute)
+	default:
+		err = errors.New(fmt.Sprintf("gitattributes: The matcher %s doesn't exists\n", attribute))
+		log.Printf(err.Error())
+	}
+	return err
+}
+
+func processVendorAttr(key string, attribute string) error {
+	var err error
+	if _, ok := vendorGitattributes[key]; ok {
+		err = &OverrideError{attribute: "vendor", path: key}
 	}
 
-	return false
+	switch {
+	case attribute == "linguist-vendored":
+		vendorGitattributes[key] = true
+	case attribute == "linguist-vendored=false":
+		vendorGitattributes[key] = false
+	}
+
+	return err
+}
+
+func processDocumentationAttr(key string, attribute string) error {
+	var err error
+	if _, ok := documentationGitattributes[key]; ok {
+		err = &OverrideError{attribute: "documentation", path: key}
+	}
+
+	switch {
+	case attribute == "linguist-documentation":
+		documentationGitattributes[key] = true
+	case attribute == "linguist-documentation=false":
+		documentationGitattributes[key] = false
+	}
+
+	return err
 }
 
 func processLanguageAttr(regExpString string, attribute string) error {
