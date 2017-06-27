@@ -118,7 +118,7 @@ func loadLine(line string, gitattributes map[string]string) error {
 	if len(tokens) == 2 {
 		var err error
 		if isInside(tokens[0], gitattributes) {
-			err = errors.New(fmt.Sprintf("You are overriding one of your previous lines %s\n", tokens[0]))
+			err = errors.New(fmt.Sprintf(".gitattributes: You are overriding one of your previous lines %s\n", tokens[0]))
 			log.Printf(err.Error())
 		}
 
@@ -136,17 +136,17 @@ func parseAttributes(attributes map[string]string) []error {
 	var errArray []error
 	for key, val := range attributes {
 		switch {
-		case val == "enry-vendored" || val == "enry-documentation":
+		case val == "linguist-vendored" || val == "linguist-documentation":
 			gitattributes[key] = true
-		case val == "enry-vendored=false" || val == "enry-documentation=false":
+		case val == "linguist-vendored=false" || val == "linguist-documentation=false":
 			gitattributes[key] = false
-		case strings.Contains(val, "enry-language="):
+		case strings.Contains(val, "linguist-language="):
 			err := processLanguageAttr(key, val)
 			if err != nil {
 				errArray = append(errArray, err)
 			}
 		default:
-			err := errors.New(fmt.Sprintf("The matcher %s doesn't exists\n", val))
+			err := errors.New(fmt.Sprintf("gitattributes: The matcher %s doesn't exists\n", val))
 			errArray = append(errArray, err)
 			log.Printf(err.Error())
 		}

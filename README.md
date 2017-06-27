@@ -176,29 +176,29 @@ if you want see measures by sample file
 --------------
 
 Like in linguist you can override the strategies via `.gitattributes` file.
-Add a `.gitattributes` file to the directory and use the enry matchers `enry-documentation`,`enry-language` or `enry-vendored` to do the override.
+Add a `.gitattributes` file to the directory and use the same matchers that you would uses in linguist `linguist-documentation`,`linguist-language` or `linguist-vendored` to do the override.
 
 #### Vendored code
 
 
-Use the `enry-vendored` attribute to vendor or un-vendor paths.
+Use the `linguist-vendored` attribute to vendor or un-vendor paths.
 
 ```
 $cat .gitattributes
-this-is-a-vendor-directory/ enry-vendored
-this-is-not/ enry-vendored=false
+this-is-a-vendor-directory/ linguist-vendored
+this-is-not/ linguist-vendored=false
 ```
 #### Documentation
 
-Documentation works the same way as vendored code but using `enry-documentation` and `enry-documentation=false`.
+Documentation works the same way as vendored code but using `linguist-documentation` and `linguist-documentation=false`.
 
 #### Language assignation
 
-If you want some files to be classified according to certain language use `enry-language=[language]`.
+If you want some files to be classified according to certain language use `linguist-language=[language]`.
 
 ```
 $cat .gitattributes
-.*\.go enry-language=MyFavouriteLanguage
+.*\.go linguist-language=MyFavouriteLanguage
 ```
 Note, that the regular expression that match the file name should be one compatible with go, see: [Golang regexp](https://golang.org/pkg/regexp/).
 
