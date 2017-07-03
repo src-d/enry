@@ -29,7 +29,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	enry.LoadGitattributes()
+	gitAttributes := enry.NewGitAttributes()
+	reader, err := os.Open(".gitattributes")
+	if err == nil {
+		gitAttributes.LoadGitAttributes("", reader)
+	}
 
 	errors := false
 	out := make(map[string][]string, 0)
@@ -55,8 +59,9 @@ func main() {
 			relativePath = relativePath + "/"
 		}
 
-		if enry.IsVendor(relativePath) || enry.IsDotFile(relativePath) ||
-			enry.IsDocumentation(relativePath) || enry.IsConfiguration(relativePath) {
+		if gitAttributes.IsVendor(relativePath) || enry.IsDotFile(relativePath) ||
+			gitAttributes.IsDocumentation(relativePath) || enry.IsConfiguration(relativePath) ||
+			gitAttributes.IsGenerated(path) {
 			if f.IsDir() {
 				return filepath.SkipDir
 			}
@@ -68,20 +73,18 @@ func main() {
 			return nil
 		}
 
-		language, ok := enry.GetLanguageByExtension(path)
-		if !ok {
-			if language, ok = enry.GetLanguageByFilename(path); !ok {
-				content, err := ioutil.ReadFile(path)
-				if err != nil {
-					errors = true
-					log.Println(err)
-					return nil
-				}
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			errors = true
+			log.Println(err)
+			return nil
+		}
 
-				language = enry.GetLanguage(filepath.Base(path), content)
-				if language == enry.OtherLanguage {
-					return nil
-				}
+		language := gitAttributes.GetLanguage(filepath.Base(path))
+		if len(language) == 0 {
+			language = enry.GetLanguage(filepath.Base(path), content)
+			if language == enry.OtherLanguage {
+				return nil
 			}
 		}
 

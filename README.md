@@ -180,7 +180,6 @@ Add a `.gitattributes` file to the directory and use the same matchers that you 
 
 #### Vendored code
 
-
 Use the `linguist-vendored` attribute to vendor or un-vendor paths.
 
 ```

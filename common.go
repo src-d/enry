@@ -3,6 +3,7 @@ package enry
 import (
 	"bufio"
 	"bytes"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -18,7 +19,6 @@ type Strategy func(filename string, content []byte, candidates []string) (langua
 
 // DefaultStrategies is the strategies' sequence GetLanguage uses to detect languages.
 var DefaultStrategies = []Strategy{
-	GetLanguagesByGitattributes,
 	GetLanguagesByModeline,
 	GetLanguagesByFilename,
 	GetLanguagesByShebang,
@@ -99,7 +99,7 @@ func GetLanguageByClassifier(content []byte, candidates []string) (language stri
 // GetLanguageByGitattributes returns the language assigned to a file for a given regular expresion in .gitattributes.
 // This strategy needs to be initialized calling LoadGitattributes
 func GetLanguageByGitattributes(filename string) (language string, safe bool) {
-	return getLanguageByStrategy(GetLanguagesByGitattributes, filename, nil, nil)
+	return getLanguageByStrategy(GetLanguagesByGitAttributes, filename, nil, nil)
 }
 
 func getLanguageByStrategy(strategy Strategy, filename string, content []byte, candidates []string) (string, bool) {
@@ -414,6 +414,25 @@ func GetLanguagesBySpecificClassifier(content []byte, candidates []string, class
 	return classifier.Classify(content, mapCandidates)
 }
 
+// GetLanguagesByGitAttributes returns either a string slice with the language
+// if the filename matches with a regExp in .gitattributes or returns a empty slice
+// in case no regExp matches the filename. It complies with the signature to be a Strategy type.
+func GetLanguagesByGitAttributes(filename string, content []byte, candidates []string) []string {
+	gitAttributes := NewGitAttributes()
+	reader, err := os.Open(".gitattributes")
+	if err != nil {
+		return nil
+	}
+
+	gitAttributes.LoadGitAttributes("", reader)
+	lang := gitAttributes.GetLanguage(filename)
+	if lang != OtherLanguage {
+		return []string{}
+	}
+
+	return []string{lang}
+}
+
 // GetLanguageExtensions returns the different extensions being used by the language.
 func GetLanguageExtensions(language string) []string {
 	return data.ExtensionsByLanguage[language]
@@ -452,17 +471,4 @@ func GetLanguageByAlias(alias string) (lang string, ok bool) {
 	}
 
 	return
-}
-
-// GetLanguagesByGitattributes returns a length 1 slice with the language assigned in .gitattributes if the regular expresion
-// matchs with the filename. It is comply with the signature to be a Strategy type.
-func GetLanguagesByGitattributes(filename string, content []byte, candidates []string) []string {
-	languages := []string{}
-	for regExp, language := range languageGitattributes {
-		if regExp.MatchString(filename) {
-			return append(languages, language)
-		}
-	}
-
-	return languages
 }
