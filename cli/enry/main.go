@@ -24,14 +24,11 @@ func main() {
 		args = append(args, ".")
 	}
 
-	jsonFlag, breakdownFlag, helpFlag := parseFlags(flags)
-	if helpFlag {
-		usage()
-		return
-	}
+	jsonFlag, breakdownFlag := parseFlags(flags)
 	root, err := filepath.Abs(args[1])
 	if err != nil {
-		log.Fatal(err)
+		usage()
+		return
 	}
 
 	errors := false
@@ -39,7 +36,7 @@ func main() {
 	err = filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			errors = true
-			log.Println(err)
+			usage()
 			return filepath.SkipDir
 		}
 
@@ -170,19 +167,19 @@ func splitArgs() (args []string, flagArgs []string) {
 			args = append(args, arg)
 		}
 	}
+
 	return
 }
 
-func parseFlags(flags []string) (jsonFlag bool, breakdownFlag bool, helpFlag bool) {
+func parseFlags(flags []string) (jsonFlag bool, breakdownFlag bool) {
 	for _, flag := range flags {
 		switch {
-		case "-help" == flag || "-h" == flag:
-			helpFlag = true
 		case "--json" == flag:
 			jsonFlag = true
 		case "--breakdown" == flag:
 			breakdownFlag = true
 		}
 	}
+
 	return
 }
