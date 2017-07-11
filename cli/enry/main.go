@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/src-d/enry.v1"
 )
@@ -19,14 +19,16 @@ var (
 )
 
 func main() {
-	flag.Usage = usage
-	breakdownFlag := flag.Bool("breakdown", false, "")
-	jsonFlag := flag.Bool("json", false, "")
-	flag.Parse()
+	args, flags := splitArgs()
+	if len(args) == 1 {
+		args = append(args, ".")
+	}
 
-	root, err := filepath.Abs(flag.Arg(0))
+	jsonFlag, breakdownFlag := parseFlags(flags)
+	root, err := filepath.Abs(args[1])
 	if err != nil {
-		log.Fatal(err)
+		usage()
+		return
 	}
 
 	errors := false
@@ -34,7 +36,7 @@ func main() {
 	err = filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			errors = true
-			log.Println(err)
+			usage()
 			return filepath.SkipDir
 		}
 
@@ -93,11 +95,11 @@ func main() {
 
 	var buff bytes.Buffer
 	switch {
-	case *jsonFlag && !*breakdownFlag:
+	case jsonFlag && !breakdownFlag:
 		printJson(out, &buff)
-	case *jsonFlag && *breakdownFlag:
+	case jsonFlag && breakdownFlag:
 		printBreakDown(out, &buff)
-	case *breakdownFlag:
+	case breakdownFlag:
 		printPercents(out, &buff)
 		buff.WriteByte('\n')
 		printBreakDown(out, &buff)
@@ -155,4 +157,29 @@ func printPercents(out map[string][]string, buff *bytes.Buffer) {
 func writeStringLn(s string, buff *bytes.Buffer) {
 	buff.WriteString(s)
 	buff.WriteByte('\n')
+}
+
+func splitArgs() (args []string, flagArgs []string) {
+	for _, arg := range os.Args {
+		if strings.HasPrefix(arg, "-") {
+			flagArgs = append(flagArgs, arg)
+		} else {
+			args = append(args, arg)
+		}
+	}
+
+	return
+}
+
+func parseFlags(flags []string) (jsonFlag bool, breakdownFlag bool) {
+	for _, flag := range flags {
+		switch {
+		case "--json" == flag:
+			jsonFlag = true
+		case "--breakdown" == flag:
+			breakdownFlag = true
+		}
+	}
+
+	return
 }
