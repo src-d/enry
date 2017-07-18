@@ -26,7 +26,7 @@ test-coverage: $(LINGUIST_PATH)
 				tail -n +2 $(COVERAGE_PROFILE) >> $(COVERAGE_REPORT); \
 				rm $(COVERAGE_PROFILE); \
 			fi; \
-	done;
+  done;
 
 code-generate: $(LINGUIST_PATH)
 	mkdir -p data

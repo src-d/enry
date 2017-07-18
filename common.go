@@ -3,6 +3,7 @@ package enry
 import (
 	"bufio"
 	"bytes"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -93,6 +94,12 @@ func GetLanguageByContent(content []byte) (language string, safe bool) {
 // DefaultClassifier, if no candidates are provided it returns OtherLanguage.
 func GetLanguageByClassifier(content []byte, candidates []string) (language string, safe bool) {
 	return getLanguageByStrategy(GetLanguagesByClassifier, "", content, candidates)
+}
+
+// GetLanguageByGitattributes returns the language assigned to a file for a given regular expresion in .gitattributes.
+// This strategy needs to be initialized calling LoadGitattributes
+func GetLanguageByGitattributes(filename string) (language string, safe bool) {
+	return getLanguageByStrategy(GetLanguagesByGitAttributes, filename, nil, nil)
 }
 
 func getLanguageByStrategy(strategy Strategy, filename string, content []byte, candidates []string) (string, bool) {
@@ -405,6 +412,25 @@ func GetLanguagesBySpecificClassifier(content []byte, candidates []string, class
 	}
 
 	return classifier.Classify(content, mapCandidates)
+}
+
+// GetLanguagesByGitAttributes returns either a string slice with the language
+// if the filename matches with a regExp in .gitattributes or returns a empty slice
+// in case no regExp matches the filename. It complies with the signature to be a Strategy type.
+func GetLanguagesByGitAttributes(filename string, content []byte, candidates []string) []string {
+	gitAttributes := NewGitAttributes()
+	reader, err := os.Open(".gitattributes")
+	if err != nil {
+		return nil
+	}
+
+	gitAttributes.LoadGitAttributes("", reader)
+	lang := gitAttributes.GetLanguage(filename)
+	if lang != OtherLanguage {
+		return []string{}
+	}
+
+	return []string{lang}
 }
 
 // GetLanguageExtensions returns the different extensions being used by the language.
