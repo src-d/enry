@@ -140,6 +140,7 @@ Using [linguist/samples](https://github.com/github/linguist/tree/master/samples)
 * all files for SQL language fall to the classifier because we don't parse this [disambiguator expresion](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb#L433) for `*.sql` files right. This expression doesn't comply with the pattern for the rest of [heuristics.rb](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb) file.
 
 
+
 Benchmarks
 ------------
 
@@ -172,7 +173,8 @@ to get time averages for main detection function and strategies for the whole sa
 if you want see measures by sample file
 
 
-.gitAttributes
+
+.gitattributes
 --------------
 
 Like in linguist you can override the strategies via `.gitattributes` file.
@@ -183,7 +185,7 @@ Add a `.gitattributes` file to the directory and use the same matchers that you 
 Use the `linguist-vendored` attribute to vendor or un-vendor paths.
 
 ```
-$cat .gitattributes
+$ cat .gitattributes
 this-is-a-vendor-directory/ linguist-vendored
 this-is-not/ linguist-vendored=false
 ```
@@ -196,10 +198,11 @@ Documentation works the same way as vendored code but using `linguist-documentat
 If you want some files to be classified according to certain language use `linguist-language=[language]`.
 
 ```
-$cat .gitattributes
+$ cat .gitattributes
 .*\.go linguist-language=MyFavouriteLanguage
 ```
-Note, that the regular expression that match the file name should be one compatible with go, see: [Golang regexp](https://golang.org/pkg/regexp/).
+
+Note that the regular expression that matches the file name should be compatible with go, see: [Golang regexp](https://golang.org/pkg/regexp/).
 
 
 Why Enry?

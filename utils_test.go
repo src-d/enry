@@ -79,3 +79,35 @@ func (s *EnryTestSuite) TestIsBinary() {
 		assert.Equal(s.T(), is, test.expected, fmt.Sprintf("%v: is = %v, expected: %v", test.name, is, test.expected))
 	}
 }
+
+func (s *EnryTestSuite) TestIdDot() {
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{name: "TestIsDot_1", path: "foo/var/.dotfile", expected: true},
+		{name: "TestIsDot_2", path: "foo/var/file", expected: false},
+		{name: "TestIsDot_3", path: "foo/var/file.dot", expected: false},
+	}
+	for _, test := range tests {
+		is := IsDotFile(test.path)
+		assert.Equal(s.T(), is, test.expected, fmt.Sprintf("%v: is = %v, expected: %v", test.name, is, test.expected))
+	}
+}
+
+func (s *EnryTestSuite) TestIsAuxiliaryLanguage() {
+	tests := []struct {
+		name     string
+		lang     string
+		expected bool
+	}{
+		{name: "TestIsAuxilaryLang_1", lang: "YAML", expected: true},
+		{name: "TestIsAuxilaryLang_2", lang: "Go", expected: false},
+		{name: "TestIsAuxilaryLang_3", lang: "JSON", expected: true},
+	}
+	for _, test := range tests {
+		is := IsAuxiliaryLanguage(test.lang)
+		assert.Equal(s.T(), is, test.expected, fmt.Sprintf("%v: is = %v, expected: %v", test.name, is, test.expected))
+	}
+}

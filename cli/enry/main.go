@@ -81,7 +81,7 @@ func main() {
 		}
 
 		language := gitAttributes.GetLanguage(filepath.Base(path))
-		if len(language) == 0 {
+		if language == enry.OtherLanguage {
 			language = enry.GetLanguage(filepath.Base(path), content)
 			if language == enry.OtherLanguage {
 				return nil
