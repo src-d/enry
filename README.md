@@ -178,7 +178,7 @@ if you want see measures by sample file
 --------------
 
 Like in linguist you can override the strategies via `.gitattributes` file.
-Add a `.gitattributes` file to the directory and use the same matchers that you would uses in linguist `linguist-documentation`,`linguist-language` or `linguist-vendored` to do the override.
+Add a `.gitattributes` file to the directory and use the same matchers that you would use in linguist `linguist-documentation`,`linguist-language` or `linguist-vendored` to do the override.
 
 #### Vendored code
 

@@ -415,7 +415,7 @@ func GetLanguagesBySpecificClassifier(content []byte, candidates []string, class
 }
 
 // GetLanguagesByGitAttributes returns either a string slice with the language
-// if the filename matches with a regExp in .gitattributes or returns a empty slice
+// if the filename matches with a regExp in .gitattributes or returns an empty slice
 // in case no regExp matches the filename. It complies with the signature to be a Strategy type.
 func GetLanguagesByGitAttributes(filename string, content []byte, candidates []string) []string {
 	gitAttributes := NewGitAttributes()
