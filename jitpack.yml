@@ -1,0 +1,3 @@
+install:
+   - echo "Running a custom install command"
+   - cd java; make; make package; ./sbt publishM2
