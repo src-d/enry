@@ -146,7 +146,7 @@ Note that even if enry's CLI is compatible with linguist's, its main point is th
 Java bindings
 ------------
 
-Generated Java bindings using a C shared library + JNI are located under [`java`](https://github.com/src-d/enry/blob/master/java)
+Generated Java bindings using a C-shared library and JNI are located under [`java`](https://github.com/src-d/enry/blob/master/java)
 
 Development
 ------------
