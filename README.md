@@ -193,43 +193,6 @@ for `*.sql` files right. This expression doesn't comply with the pattern for the
 rest in [heuristics.rb](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb).
 
 
-Benchmarks
-------------
-
-Enry's language detection has been compared with Linguist's one. In order to do that, linguist's project directory [*linguist/samples*](https://github.com/github/linguist/tree/master/samples) was used as a set of files to run benchmarks against.
-
-We got these results:
-
-![histogram](https://raw.githubusercontent.com/src-d/enry/master/benchmarks/histogram/distribution.png)
-
-The histogram represents the number of files for which spent time in language
-detection was in the range of the time interval indicated in the x axis.
-
-So you can see that most of the files were detected quicker in enry.
-
-We found some few cases where enry turns slower than linguist. This is due to
-Golang's regexp engine being slower than Ruby's, which uses the [oniguruma](https://github.com/kkos/oniguruma) library, written in C.
-
-You can find scripts and additional information (like software and hardware used
-and benchmarks' results per sample file) in [*benchmarks*](https://github.com/src-d/enry/blob/master/benchmarks) directory.
-
-If you want to reproduce the same benchmarks you can run:
-
-    benchmarks/run.sh
-
-from the root's project directory and it'll run benchmarks for enry and linguist, parse the output, create csv files and create a histogram (you must have installed [gnuplot](http://gnuplot.info) in your system to get the histogram).
-
-This can take some time, so to run local benchmarks for a quick check you can either:
-
-    make benchmarks
-
-to get average times for the main detection function and strategies for the whole samples set or:
-
-    make benchmarks-samples
-
-if you want to see measures by sample file.
-
-
 Why Enry?
 ------------
 
