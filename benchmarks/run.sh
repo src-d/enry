@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-benchmarks/run-benchmarks.sh && make benchmarks-slow && \
-benchmarks/parse.sh && benchmarks/plot-histogram.gp
+set -e
+
+benchmarks/run-benchmarks.sh
+make benchmarks-slow
+benchmarks/parse.sh
+benchmarks/plot-histogram.gp
