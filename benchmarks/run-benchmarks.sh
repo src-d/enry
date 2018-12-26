@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 mkdir -p benchmarks/output
 go test -run NONE -bench=. -benchtime=120s -timeout=100h > benchmarks/output/enry_total.bench
