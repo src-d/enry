@@ -23,12 +23,6 @@ $(DOCS_PATH)/Makefile.inc:
 
 LINGUIST_PATH = .linguist
 
-# build CLI
-LOCAL_TAG := $(shell git describe --tags --abbrev=0)
-LOCAL_COMMIT := $(shell git rev-parse --short HEAD)
-LOCAL_BUILD := $(shell date +"%m-%d-%Y_%H_%M_%S")
-LOCAL_LDFLAGS = -s -X main.version=$(LOCAL_TAG) -X main.build=$(LOCAL_BUILD) -X main.commit=$(LOCAL_COMMIT)
-
 # shared objects
 RESOURCES_DIR=./.shared
 LINUX_DIR=$(RESOURCES_DIR)/linux-x86-64
@@ -62,9 +56,6 @@ benchmarks-samples: $(LINGUIST_PATH)
 benchmarks-slow: $(LINGUST_PATH)
 	mkdir -p benchmarks/output && go test -run=NONE -bench=. -slow -benchtime=100ms -timeout=100h >benchmarks/output/enry_samples.bench && \
 	benchmarks/linguist-samples.rb 5 >benchmarks/output/linguist_samples.bench
-
-build-cli:
-	go build -o enry -ldflags "$(LOCAL_LDFLAGS)" cmd/enry/main.go
 
 linux-shared: $(LINUX_SHARED_LIB)
 

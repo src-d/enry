@@ -14,7 +14,7 @@ go get gopkg.in/src-d/enry.v1/...
 
 To build enry's CLI you must run
 
-    make build-cli
+    make build
 
 this will generate a binary in the project's root directory called `enry`. You can then move this binary to anywhere in your `PATH`.
 
