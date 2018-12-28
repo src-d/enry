@@ -7,9 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Documentation generates filename matchers in Go for documentation.
-// Based on template in tmplPath, using data from fileToParse and
-// result are saved to outFile. It is of generator.File type.
+// Documentation generates regex matchers in Go for documentation files/dirs.
+// It is of generator.File type.
 func Documentation(fileToParse, _, outFile, tmplPath, tmplName, commit string) error {
 	data, err := ioutil.ReadFile(fileToParse)
 	if err != nil {
