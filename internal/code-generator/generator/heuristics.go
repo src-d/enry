@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
@@ -31,19 +32,19 @@ func GenHeuristics(fileToParse, _, outPath, tmplPath, tmplName, commit string) e
 	return formatedWrite(outPath, buf.Bytes())
 }
 
+// loadHeuristics transforms parsed YAML to map[".ext"]->IR for code generation.
 func loadHeuristics(yaml *Heuristics) (map[string][]*LanguagePattern, error) {
 	var patterns = make(map[string][]*LanguagePattern)
 	for _, disambiguation := range yaml.Disambiguations {
 		var rules []*LanguagePattern
 		for _, rule := range disambiguation.Rules {
 			langPattern := loadRule(yaml.NamedPatterns, rule)
-			rules = append(rules, langPattern)
+			if langPattern != nil {
+				rules = append(rules, langPattern)
+			}
 		}
-
+		// unroll to a single map
 		for _, ext := range disambiguation.Extensions {
-			//  	 ["ext1", "ext2"]->[]*Rules =>
-			//   		"ext1"->{lang: "language", patterns: ["pattern1", "pattern2"]}
-			//          "ext2"->{ ... }
 			if _, ok := patterns[ext]; ok {
 				return nil, fmt.Errorf("cannt add extension '%s', it already exists for %q", ext, patterns[ext])
 			}
@@ -54,18 +55,18 @@ func loadHeuristics(yaml *Heuristics) (map[string][]*LanguagePattern, error) {
 	return patterns, nil
 }
 
+// loadRule transforms single rule from parsed YAML to IR for code generation.
+// For OrPattern case, it always combines multiple patterns into a single one.
 func loadRule(namedPatterns map[string]StringArray, rule *Rule) *LanguagePattern {
-	// fmt.Printf("loading rule: \n\t%q\n", rule)
 	var result *LanguagePattern
-	if len(rule.And) != 0 { // - AndPattern
+	if len(rule.And) != 0 { // AndPattern
 		var subPatterns []*LanguagePattern
 		for _, r := range rule.And {
-			subPattern := loadRule(namedPatterns, r)
-			subPatterns = append(subPatterns, subPattern)
+			subp := loadRule(namedPatterns, r)
+			subPatterns = append(subPatterns, subp)
 		}
 		result = &LanguagePattern{"And", rule.Languages, "", subPatterns}
 	} else if len(rule.Pattern) != 0 { // OrPattern
-		// combines multiple patterns into a single one
 		conjunction := strings.Join(rule.Pattern, " | ")
 		result = &LanguagePattern{"Or", rule.Languages, conjunction, nil}
 	} else if rule.NegativePattern != "" { // NotPattern
@@ -76,12 +77,16 @@ func loadRule(namedPatterns map[string]StringArray, rule *Rule) *LanguagePattern
 	} else { // AlwaysPattern
 		result = &LanguagePattern{"Always", rule.Languages, "", nil}
 	}
-	// fmt.Printf("\tgot: \n\t%q\n", result)
+
+	if isUnsupportedRegexpSyntax(result.Pattern) {
+		log.Printf("skipping rule: language:'%q', rule:'%q'\n", rule.Languages, result.Pattern)
+		return nil
+	}
 	return result
 }
 
-// LanguagePattern is a representation of parsed Rule.
-// Strings are used as this will be consumed by a template.
+// LanguagePattern is an IR of parsed Rule suitable for code generations.
+// Strings are used as this is to be be consumed by text/template.
 type LanguagePattern struct {
 	Op      string
 	Langs   []string
@@ -143,4 +148,13 @@ func parseYaml(file string) (*Heuristics, error) {
 	}
 
 	return h, nil
+}
+
+// isUnsupportedRegexpSyntax filters regexp syntax that is not supported by RE2.
+// In particular, we stumbled up on usage of next cases:
+// - named & numbered capturing group/after text matching
+// - backreference
+// For referece on supported syntax see https://github.com/google/re2/wiki/Syntax
+func isUnsupportedRegexpSyntax(reg string) bool {
+	return strings.Contains(reg, `(?<`) || strings.Contains(reg, `\1`)
 }

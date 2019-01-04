@@ -183,17 +183,7 @@ Divergences from linguist
 Using [linguist/samples](https://github.com/github/linguist/tree/master/samples)
 as a set for the tests, the following issues were found:
 
-* With [hello.ms](https://github.com/github/linguist/blob/master/samples/Unix%20Assembly/hello.ms) we can't detect the language (Unix Assembly) because we don't have a matcher in contentMatchers (content.go) for Unix Assembly. Linguist uses this [regexp](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb#L300) in its code,
-
-    `elsif /(?<!\S)\.(include|globa?l)\s/.match(data) || /(?<!\/\*)(\A|\n)\s*\.[A-Za-z][_A-Za-z0-9]*:/.match(data.gsub(/"([^\\"]|\\.)*"|'([^\\']|\\.)*'|\\\s*(?:--.*)?\n/, ""))`
-
-    which we can't port.
-
-* All files for the SQL language fall to the classifier because we don't parse
-this [disambiguator
-expression](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb#L433)
-for `*.sql` files right. This expression doesn't comply with the pattern for the
-rest in [heuristics.rb](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb).
+* [Heuristics for ".es" extension](https://github.com/github/linguist/blob/e761f9b013e5b61161481fcb898b59721ee40e3d/lib/linguist/heuristics.yml#L103) in JavaScript could not be parsed, due to unsupported backreference in RE2 regexp engine
 
 `enry` [CLI tool](#cli) does not require a full Git repository to be present in filesystem in order to report languages.
 
@@ -232,7 +222,7 @@ As benchmarks depend on Ruby and Github-Linguist gem make sure you have:
 If you want to reproduce the same benchmarks as reported above:
  - Make sure all [dependencies](#benchmark-dependencies) are installed
  - Install [gnuplot](http://gnuplot.info) (in order to plot the histogram)
- - Run `ENRY_TEST_REPO=.linguist benchmarks/run.sh` (takes ~15h)
+ - Run `ENRY_TEST_REPO="$PWD/.linguist" benchmarks/run.sh` (takes ~15h)
 
 It will run the benchmarks for enry and linguist, parse the output, create csv files and plot the histogram. This takes some time.
 
