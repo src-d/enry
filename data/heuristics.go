@@ -22,7 +22,13 @@ func (h *Heuristics) Match(data []byte) []string {
 	var matchedLangs []string
 	for _, matcher := range *h {
 		if matcher.Match(data) {
-			for _, lang := range matcher.(Rule).GetLanguages() {
+			for _, langOrAlias := range matcher.(Rule).GetLanguages() {
+				lang, ok := LanguagesByAlias(langOrAlias)
+				if !ok { // should never happen
+					// language name/alias in heuristics.yml is not consistent with languages.yml
+					// but we do not surface any error on the API
+					continue
+				}
 				matchedLangs = append(matchedLangs, lang)
 			}
 			break
