@@ -195,7 +195,7 @@ var ContentHeuristics = map[string]*Heuristics{
 		},
 		&OrRule{
 			&Languages{[]string{"C++"}},
-			regexp.MustCompile(`(?m)^\s*#\s*include <(cstdint|string|vector|map|list|array|bitset|queue|stack|forward_list|unordered_map|unordered_set|(i|o|io)stream)> | ^\s*template\s*< | ^[ \t]*try | ^[ \t]*catch\s*\( | ^[ \t]*(class|(using[ \t]+)?namespace)\s+\w+ | ^[ \t]*(private|public|protected):$ | std::\w+`),
+			regexp.MustCompile(`(?m)^\s*#\s*include <(cstdint|string|vector|map|list|array|bitset|queue|stack|forward_list|unordered_map|unordered_set|(i|o|io)stream)>|^\s*template\s*<|^[ \t]*try|^[ \t]*catch\s*\(|^[ \t]*(class|(using[ \t]+)?namespace)\s+\w+|^[ \t]*(private|public|protected):$|std::\w+`),
 		},
 	},
 	".hh": &Heuristics{
@@ -300,7 +300,7 @@ var ContentHeuristics = map[string]*Heuristics{
 	".md": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Markdown"}},
-			regexp.MustCompile(`(?m)(^[-A-Za-z0-9=#!\*\[|>])|<\/ | \A\z`),
+			regexp.MustCompile(`(?m)(^[-A-Za-z0-9=#!\*\[|>])|<\/|\A\z`),
 		},
 		&OrRule{
 			&Languages{[]string{"GCC Machine Description"}},

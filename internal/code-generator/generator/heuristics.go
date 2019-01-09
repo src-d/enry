@@ -10,6 +10,11 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+const (
+	multilinePrefix = "(?m)"
+	orPipe          = "|"
+)
+
 // GenHeuristics generates language identification heuristics in Go.
 // It is of generator.File type.
 func GenHeuristics(fileToParse, _, outPath, tmplPath, tmplName, commit string) error {
@@ -67,14 +72,14 @@ func loadRule(namedPatterns map[string]StringArray, rule *Rule) *LanguagePattern
 		}
 		result = &LanguagePattern{"And", rule.Languages, "", subPatterns}
 	} else if len(rule.Pattern) != 0 { // OrPattern
-		conjunction := strings.Join(rule.Pattern, " | ")
+		conjunction := strings.Join(rule.Pattern, orPipe)
 		pattern := convertToValidRegexp(conjunction)
 		result = &LanguagePattern{"Or", rule.Languages, pattern, nil}
 	} else if rule.NegativePattern != "" { // NotPattern
 		pattern := convertToValidRegexp(rule.NegativePattern)
 		result = &LanguagePattern{"Not", rule.Languages, pattern, nil}
 	} else if rule.NamedPattern != "" { // Named OrPattern
-		conjunction := strings.Join(namedPatterns[rule.NamedPattern], " | ")
+		conjunction := strings.Join(namedPatterns[rule.NamedPattern], orPipe)
 		pattern := convertToValidRegexp(conjunction)
 		result = &LanguagePattern{"Or", rule.Languages, pattern, nil}
 	} else { // AlwaysPattern
@@ -163,8 +168,6 @@ func isUnsupportedRegexpSyntax(reg string) bool {
 		// See https://github.com/github/linguist/pull/4243#discussion_r246105067
 		(strings.HasPrefix(reg, multilinePrefix+`/`) && strings.HasSuffix(reg, `/`))
 }
-
-const multilinePrefix = "(?m)"
 
 // convertToValidRegexp converts Ruby regexp syntaxt to RE2 equivalent.
 // Does not work with Ruby regexp literals.
