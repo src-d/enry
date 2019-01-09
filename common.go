@@ -16,7 +16,7 @@ const OtherLanguage = ""
 // Strategy type fix the signature for the functions that can be used as a strategy.
 type Strategy func(filename string, content []byte, candidates []string) (languages []string)
 
-// DefaultStrategies is the strategies' sequence GetLanguage uses to detect languages.
+// DefaultStrategies is a sequence of stratagies used by GetLanguage to detect languages.
 var DefaultStrategies = []Strategy{
 	GetLanguagesByModeline,
 	GetLanguagesByFilename,
@@ -396,12 +396,13 @@ func GetLanguagesByContent(filename string, content []byte, _ []string) []string
 	}
 
 	ext := strings.ToLower(filepath.Ext(filename))
-	fnMatcher, ok := data.ContentMatchers[ext]
+
+	heuristic, ok := data.ContentHeuristics[ext]
 	if !ok {
 		return nil
 	}
 
-	return fnMatcher(content)
+	return heuristic.Match(content)
 }
 
 // GetLanguagesByClassifier uses DefaultClassifier as a Classifier and returns a sorted slice of possible languages ordered by

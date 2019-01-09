@@ -87,7 +87,7 @@ type GeneratorTestSuite struct {
 	cloned      bool
 }
 
-func TestGeneratorTestSuite(t *testing.T) {
+func Test_GeneratorTestSuite(t *testing.T) {
 	suite.Run(t, new(GeneratorTestSuite))
 }
 
@@ -152,7 +152,7 @@ func (s *GeneratorTestSuite) TestGenerationFiles() {
 			tmplPath:    contentTestTmplPath,
 			tmplName:    contentTestTmplName,
 			commit:      commit,
-			generate:    Heuristics,
+			generate:    GenHeuristics,
 			wantOut:     contentGold,
 		},
 		{
