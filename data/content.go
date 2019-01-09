@@ -9,7 +9,7 @@ var ContentHeuristics = map[string]*Heuristics{
 	".as": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"ActionScript"}},
-			regexp.MustCompile(`^\s*(package\s+[a-z0-9_\.]+|import\s+[a-zA-Z0-9_\.]+;|class\s+[A-Za-z0-9_]+\s+extends\s+[A-Za-z0-9_]+)`),
+			regexp.MustCompile(`(?m)^\s*(package\s+[a-z0-9_\.]+|import\s+[a-zA-Z0-9_\.]+;|class\s+[A-Za-z0-9_]+\s+extends\s+[A-Za-z0-9_]+)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"AngelScript"}},
@@ -18,31 +18,31 @@ var ContentHeuristics = map[string]*Heuristics{
 	".asc": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Public Key"}},
-			regexp.MustCompile(`^(----[- ]BEGIN|ssh-(rsa|dss)) `),
+			regexp.MustCompile(`(?m)^(----[- ]BEGIN|ssh-(rsa|dss)) `),
 		},
 		&OrRule{
 			&Languages{[]string{"AsciiDoc"}},
-			regexp.MustCompile(`^[=-]+(\s|\n)|{{[A-Za-z]`),
+			regexp.MustCompile(`(?m)^[=-]+(\s|\n)|{{[A-Za-z]`),
 		},
 		&OrRule{
 			&Languages{[]string{"AGS Script"}},
-			regexp.MustCompile(`^(\/\/.+|((import|export)\s+)?(function|int|float|char)\s+((room|repeatedly|on|game)_)?([A-Za-z]+[A-Za-z_0-9]+)\s*[;\(])`),
+			regexp.MustCompile(`(?m)^(\/\/.+|((import|export)\s+)?(function|int|float|char)\s+((room|repeatedly|on|game)_)?([A-Za-z]+[A-Za-z_0-9]+)\s*[;\(])`),
 		},
 	},
 	".bb": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"BlitzBasic"}},
-			regexp.MustCompile(`(<^\s*; |End Function)`),
+			regexp.MustCompile(`(?m)(<^\s*; |End Function)`),
 		},
 		&OrRule{
 			&Languages{[]string{"BitBake"}},
-			regexp.MustCompile(`^\s*(# |include|require)\b`),
+			regexp.MustCompile(`(?m)^\s*(# |include|require)\b`),
 		},
 	},
 	".builds": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`^(\s*)(?i:<Project|<Import|<Property|<?xml|xmlns)`),
+			regexp.MustCompile(`(?m)^(\s*)(?i:<Project|<Import|<Property|<?xml|xmlns)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Text"}},
@@ -51,101 +51,101 @@ var ContentHeuristics = map[string]*Heuristics{
 	".ch": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"xBase"}},
-			regexp.MustCompile(`^\s*#\s*(?i:if|ifdef|ifndef|define|command|xcommand|translate|xtranslate|include|pragma|undef)\b`),
+			regexp.MustCompile(`(?m)^\s*#\s*(?i:if|ifdef|ifndef|define|command|xcommand|translate|xtranslate|include|pragma|undef)\b`),
 		},
 	},
 	".cl": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Common Lisp"}},
-			regexp.MustCompile(`^\s*\((?i:defun|in-package|defpackage) `),
+			regexp.MustCompile(`(?m)^\s*\((?i:defun|in-package|defpackage) `),
 		},
 		&OrRule{
 			&Languages{[]string{"Cool"}},
-			regexp.MustCompile(`^class`),
+			regexp.MustCompile(`(?m)^class`),
 		},
 		&OrRule{
 			&Languages{[]string{"OpenCL"}},
-			regexp.MustCompile(`\/\* |\/\/ |^\}`),
+			regexp.MustCompile(`(?m)\/\* |\/\/ |^\}`),
 		},
 	},
 	".cls": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"TeX"}},
-			regexp.MustCompile(`\\\w+{`),
+			regexp.MustCompile(`(?m)\\\w+{`),
 		},
 	},
 	".cs": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Smalltalk"}},
-			regexp.MustCompile(`![\w\s]+methodsFor: `),
+			regexp.MustCompile(`(?m)![\w\s]+methodsFor: `),
 		},
 		&OrRule{
 			&Languages{[]string{"C#"}},
-			regexp.MustCompile(`^(\s*namespace\s*[\w\.]+\s*{|\s*\/\/)`),
+			regexp.MustCompile(`(?m)^(\s*namespace\s*[\w\.]+\s*{|\s*\/\/)`),
 		},
 	},
 	".d": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"D"}},
-			regexp.MustCompile(`^module\s+[\w.]*\s*;|import\s+[\w\s,.:]*;|\w+\s+\w+\s*\(.*\)(?:\(.*\))?\s*{[^}]*}|unittest\s*(?:\(.*\))?\s*{[^}]*}`),
+			regexp.MustCompile(`(?m)^module\s+[\w.]*\s*;|import\s+[\w\s,.:]*;|\w+\s+\w+\s*\(.*\)(?:\(.*\))?\s*{[^}]*}|unittest\s*(?:\(.*\))?\s*{[^}]*}`),
 		},
 		&OrRule{
 			&Languages{[]string{"DTrace"}},
-			regexp.MustCompile(`^(\w+:\w*:\w*:\w*|BEGIN|END|provider\s+|(tick|profile)-\w+\s+{[^}]*}|#pragma\s+D\s+(option|attributes|depends_on)\s|#pragma\s+ident\s)`),
+			regexp.MustCompile(`(?m)^(\w+:\w*:\w*:\w*|BEGIN|END|provider\s+|(tick|profile)-\w+\s+{[^}]*}|#pragma\s+D\s+(option|attributes|depends_on)\s|#pragma\s+ident\s)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Makefile"}},
-			regexp.MustCompile(`([\/\\].*:\s+.*\s\\$|: \\$|^ : |^[\w\s\/\\.]+\w+\.\w+\s*:\s+[\w\s\/\\.]+\w+\.\w+)`),
+			regexp.MustCompile(`(?m)([\/\\].*:\s+.*\s\\$|: \\$|^ : |^[\w\s\/\\.]+\w+\.\w+\s*:\s+[\w\s\/\\.]+\w+\.\w+)`),
 		},
 	},
 	".ecl": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"ECLiPSe"}},
-			regexp.MustCompile(`^[^#]+:-`),
+			regexp.MustCompile(`(?m)^[^#]+:-`),
 		},
 		&OrRule{
 			&Languages{[]string{"ECL"}},
-			regexp.MustCompile(`:=`),
+			regexp.MustCompile(`(?m):=`),
 		},
 	},
 	".es": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Erlang"}},
-			regexp.MustCompile(`^\s*(?:%%|main\s*\(.*?\)\s*->)`),
+			regexp.MustCompile(`(?m)^\s*(?:%%|main\s*\(.*?\)\s*->)`),
 		},
 	},
 	".f": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Forth"}},
-			regexp.MustCompile(`^: `),
+			regexp.MustCompile(`(?m)^: `),
 		},
 		&OrRule{
 			&Languages{[]string{"Filebench WML"}},
-			regexp.MustCompile(`flowop`),
+			regexp.MustCompile(`(?m)flowop`),
 		},
 		&OrRule{
 			&Languages{[]string{"Fortran"}},
-			regexp.MustCompile(`^(?i:[c*][^abd-z]|      (subroutine|program|end|data)\s|\s*!)`),
+			regexp.MustCompile(`(?m)^(?i:[c*][^abd-z]|      (subroutine|program|end|data)\s|\s*!)`),
 		},
 	},
 	".for": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Forth"}},
-			regexp.MustCompile(`^: `),
+			regexp.MustCompile(`(?m)^: `),
 		},
 		&OrRule{
 			&Languages{[]string{"Fortran"}},
-			regexp.MustCompile(`^(?i:[c*][^abd-z]|      (subroutine|program|end|data)\s|\s*!)`),
+			regexp.MustCompile(`(?m)^(?i:[c*][^abd-z]|      (subroutine|program|end|data)\s|\s*!)`),
 		},
 	},
 	".fr": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Forth"}},
-			regexp.MustCompile(`^(: |also |new-device|previous )`),
+			regexp.MustCompile(`(?m)^(: |also |new-device|previous )`),
 		},
 		&OrRule{
 			&Languages{[]string{"Frege"}},
-			regexp.MustCompile(`^\s*(import|module|package|data|type) `),
+			regexp.MustCompile(`(?m)^\s*(import|module|package|data|type) `),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Text"}},
@@ -154,29 +154,29 @@ var ContentHeuristics = map[string]*Heuristics{
 	".fs": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Forth"}},
-			regexp.MustCompile(`^(: |new-device)`),
+			regexp.MustCompile(`(?m)^(: |new-device)`),
 		},
 		&OrRule{
 			&Languages{[]string{"F#"}},
-			regexp.MustCompile(`^\s*(#light|import|let|module|namespace|open|type)`),
+			regexp.MustCompile(`(?m)^\s*(#light|import|let|module|namespace|open|type)`),
 		},
 		&OrRule{
 			&Languages{[]string{"GLSL"}},
-			regexp.MustCompile(`^\s*(#version|precision|uniform|varying|vec[234])`),
+			regexp.MustCompile(`(?m)^\s*(#version|precision|uniform|varying|vec[234])`),
 		},
 		&OrRule{
 			&Languages{[]string{"Filterscript"}},
-			regexp.MustCompile(`#include|#pragma\s+(rs|version)|__attribute__`),
+			regexp.MustCompile(`(?m)#include|#pragma\s+(rs|version)|__attribute__`),
 		},
 	},
 	".gml": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`(?i:^\s*(\<\?xml|xmlns))`),
+			regexp.MustCompile(`(?m)(?i:^\s*(\<\?xml|xmlns))`),
 		},
 		&OrRule{
 			&Languages{[]string{"Graph Modeling Language"}},
-			regexp.MustCompile(`(?i:^\s*(graph|node)\s+\[$)`),
+			regexp.MustCompile(`(?m)(?i:^\s*(graph|node)\s+\[$)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Game Maker Language"}},
@@ -185,77 +185,73 @@ var ContentHeuristics = map[string]*Heuristics{
 	".gs": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Gosu"}},
-			regexp.MustCompile(`^uses java\.`),
+			regexp.MustCompile(`(?m)^uses java\.`),
 		},
 	},
 	".h": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Objective-C"}},
-			regexp.MustCompile(`^\s*(@(interface|class|protocol|property|end|synchronised|selector|implementation)\b|#import\s+.+\.h[">])`),
+			regexp.MustCompile(`(?m)^\s*(@(interface|class|protocol|property|end|synchronised|selector|implementation)\b|#import\s+.+\.h[">])`),
 		},
 		&OrRule{
 			&Languages{[]string{"C++"}},
-			regexp.MustCompile(`^\s*#\s*include <(cstdint|string|vector|map|list|array|bitset|queue|stack|forward_list|unordered_map|unordered_set|(i|o|io)stream)> | ^\s*template\s*< | ^[ \t]*try | ^[ \t]*catch\s*\( | ^[ \t]*(class|(using[ \t]+)?namespace)\s+\w+ | ^[ \t]*(private|public|protected):$ | std::\w+`),
+			regexp.MustCompile(`(?m)^\s*#\s*include <(cstdint|string|vector|map|list|array|bitset|queue|stack|forward_list|unordered_map|unordered_set|(i|o|io)stream)> | ^\s*template\s*< | ^[ \t]*try | ^[ \t]*catch\s*\( | ^[ \t]*(class|(using[ \t]+)?namespace)\s+\w+ | ^[ \t]*(private|public|protected):$ | std::\w+`),
 		},
 	},
 	".hh": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Hack"}},
-			regexp.MustCompile(`<\?hh`),
+			regexp.MustCompile(`(?m)<\?hh`),
 		},
 	},
 	".ice": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Slice"}},
-			regexp.MustCompile(`^\s*(#\s*(include|if[n]def|pragma)|module\s+[A-Za-z][_A-Za-z0-9]*)`),
-		},
-		&OrRule{
-			&Languages{[]string{"JSON"}},
-			regexp.MustCompile(`/\A\s*[{\[]/`),
+			regexp.MustCompile(`(?m)^\s*(#\s*(include|if[n]def|pragma)|module\s+[A-Za-z][_A-Za-z0-9]*)`),
 		},
 	},
 	".inc": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"PHP"}},
-			regexp.MustCompile(`^<\?(?:php)?`),
+			regexp.MustCompile(`(?m)^<\?(?:php)?`),
 		},
 		&OrRule{
 			&Languages{[]string{"POV-Ray SDL"}},
-			regexp.MustCompile(`^\s*#(declare|local|macro|while)\s`),
+			regexp.MustCompile(`(?m)^\s*#(declare|local|macro|while)\s`),
 		},
 	},
 	".l": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Common Lisp"}},
-			regexp.MustCompile(`\(def(un|macro)\s`),
+			regexp.MustCompile(`(?m)\(def(un|macro)\s`),
 		},
 		&OrRule{
 			&Languages{[]string{"Lex"}},
-			regexp.MustCompile(`^(%[%{}]xs|<.*>)`),
+			regexp.MustCompile(`(?m)^(%[%{}]xs|<.*>)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Roff"}},
-			regexp.MustCompile(`^\.[A-Za-z]{2}(\s|$)`),
+			regexp.MustCompile(`(?m)^\.[A-Za-z]{2}(\s|$)`),
 		},
 		&OrRule{
 			&Languages{[]string{"PicoLisp"}},
-			regexp.MustCompile(`^\((de|class|rel|code|data|must)\s`),
+			regexp.MustCompile(`(?m)^\((de|class|rel|code|data|must)\s`),
 		},
 	},
 	".lisp": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Common Lisp"}},
-			regexp.MustCompile(`^\s*\((?i:defun|in-package|defpackage) `),
+			regexp.MustCompile(`(?m)^\s*\((?i:defun|in-package|defpackage) `),
 		},
 		&OrRule{
 			&Languages{[]string{"NewLisp"}},
-			regexp.MustCompile(`^\s*\(define `),
+			regexp.MustCompile(`(?m)^\s*\(define `),
 		},
 	},
 	".ls": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"LoomScript"}},
-			regexp.MustCompile(`^\s*package\s*[\w\.\/\*\s]*\s*{`),
+			regexp.MustCompile(`(?m)^\s*package\s*[\w\.\/\*\s]*\s*{`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"LiveScript"}},
@@ -264,51 +260,51 @@ var ContentHeuristics = map[string]*Heuristics{
 	".lsp": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Common Lisp"}},
-			regexp.MustCompile(`^\s*\((?i:defun|in-package|defpackage) `),
+			regexp.MustCompile(`(?m)^\s*\((?i:defun|in-package|defpackage) `),
 		},
 		&OrRule{
 			&Languages{[]string{"NewLisp"}},
-			regexp.MustCompile(`^\s*\(define `),
+			regexp.MustCompile(`(?m)^\s*\(define `),
 		},
 	},
 	".m": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Objective-C"}},
-			regexp.MustCompile(`^\s*(@(interface|class|protocol|property|end|synchronised|selector|implementation)\b|#import\s+.+\.h[">])`),
+			regexp.MustCompile(`(?m)^\s*(@(interface|class|protocol|property|end|synchronised|selector|implementation)\b|#import\s+.+\.h[">])`),
 		},
 		&OrRule{
 			&Languages{[]string{"Mercury"}},
-			regexp.MustCompile(`:- module`),
+			regexp.MustCompile(`(?m):- module`),
 		},
 		&OrRule{
 			&Languages{[]string{"MUF"}},
-			regexp.MustCompile(`^: `),
+			regexp.MustCompile(`(?m)^: `),
 		},
 		&OrRule{
 			&Languages{[]string{"M"}},
-			regexp.MustCompile(`^\s*;`),
+			regexp.MustCompile(`(?m)^\s*;`),
 		},
 		&OrRule{
 			&Languages{[]string{"Mathematica"}},
-			regexp.MustCompile(`\*\)$`),
+			regexp.MustCompile(`(?m)\*\)$`),
 		},
 		&OrRule{
 			&Languages{[]string{"MATLAB"}},
-			regexp.MustCompile(`^\s*%`),
+			regexp.MustCompile(`(?m)^\s*%`),
 		},
 		&OrRule{
 			&Languages{[]string{"Limbo"}},
-			regexp.MustCompile(`^\w+\s*:\s*module\s*{`),
+			regexp.MustCompile(`(?m)^\w+\s*:\s*module\s*{`),
 		},
 	},
 	".md": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Markdown"}},
-			regexp.MustCompile(`(^[-A-Za-z0-9=#!\*\[|>])|<\/ | \A\z`),
+			regexp.MustCompile(`(?m)(^[-A-Za-z0-9=#!\*\[|>])|<\/ | \A\z`),
 		},
 		&OrRule{
 			&Languages{[]string{"GCC Machine Description"}},
-			regexp.MustCompile(`^(;;|\(define_)`),
+			regexp.MustCompile(`(?m)^(;;|\(define_)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Markdown"}},
@@ -317,21 +313,21 @@ var ContentHeuristics = map[string]*Heuristics{
 	".ml": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"OCaml"}},
-			regexp.MustCompile(`(^\s*module)|let rec |match\s+(\S+\s)+with`),
+			regexp.MustCompile(`(?m)(^\s*module)|let rec |match\s+(\S+\s)+with`),
 		},
 		&OrRule{
 			&Languages{[]string{"Standard ML"}},
-			regexp.MustCompile(`=> |case\s+(\S+\s)+of`),
+			regexp.MustCompile(`(?m)=> |case\s+(\S+\s)+of`),
 		},
 	},
 	".mod": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`<!ENTITY `),
+			regexp.MustCompile(`(?m)<!ENTITY `),
 		},
 		&OrRule{
 			&Languages{[]string{"Modula-2"}},
-			regexp.MustCompile(`^\s*(?i:MODULE|END) [\w\.]+;`),
+			regexp.MustCompile(`(?m)^\s*(?i:MODULE|END) [\w\.]+;`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Linux Kernel Module", "AMPL"}},
@@ -340,18 +336,18 @@ var ContentHeuristics = map[string]*Heuristics{
 	".ms": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Roff"}},
-			regexp.MustCompile(`^[.'][A-Za-z]{2}(\s|$)`),
+			regexp.MustCompile(`(?m)^[.'][A-Za-z]{2}(\s|$)`),
 		},
 		&AndRule{
 			&Languages{[]string{"Unix Assembly"}},
 			[]Matcher{
 				&NotRule{
 					nil,
-					[]*regexp.Regexp{regexp.MustCompile(`/\*`)},
+					[]*regexp.Regexp{regexp.MustCompile(`(?m)/\*`)},
 				},
 				&OrRule{
 					nil,
-					regexp.MustCompile(`^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
+					regexp.MustCompile(`(?m)^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
 				},
 			},
 		},
@@ -362,27 +358,27 @@ var ContentHeuristics = map[string]*Heuristics{
 	".n": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Roff"}},
-			regexp.MustCompile(`^[.']`),
+			regexp.MustCompile(`(?m)^[.']`),
 		},
 		&OrRule{
 			&Languages{[]string{"Nemerle"}},
-			regexp.MustCompile(`^(module|namespace|using)\s`),
+			regexp.MustCompile(`(?m)^(module|namespace|using)\s`),
 		},
 	},
 	".ncl": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`^\s*<\?xml\s+version`),
+			regexp.MustCompile(`(?m)^\s*<\?xml\s+version`),
 		},
 		&OrRule{
 			&Languages{[]string{"Text"}},
-			regexp.MustCompile(`THE_TITLE`),
+			regexp.MustCompile(`(?m)THE_TITLE`),
 		},
 	},
 	".nl": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"NL"}},
-			regexp.MustCompile(`^(b|g)[0-9]+ `),
+			regexp.MustCompile(`(?m)^(b|g)[0-9]+ `),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"NewLisp"}},
@@ -391,45 +387,45 @@ var ContentHeuristics = map[string]*Heuristics{
 	".php": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Hack"}},
-			regexp.MustCompile(`<\?hh`),
+			regexp.MustCompile(`(?m)<\?hh`),
 		},
 		&OrRule{
 			&Languages{[]string{"PHP"}},
-			regexp.MustCompile(`<\?[^h]`),
+			regexp.MustCompile(`(?m)<\?[^h]`),
 		},
 	},
 	".pl": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Prolog"}},
-			regexp.MustCompile(`^[^#]*:-`),
+			regexp.MustCompile(`(?m)^[^#]*:-`),
 		},
 		&OrRule{
 			&Languages{[]string{"Perl"}},
-			regexp.MustCompile(`\buse\s+(?:strict\b|v?5\.)`),
+			regexp.MustCompile(`(?m)\buse\s+(?:strict\b|v?5\.)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Perl 6"}},
-			regexp.MustCompile(`^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
+			regexp.MustCompile(`(?m)^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
 		},
 	},
 	".pm": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Perl"}},
-			regexp.MustCompile(`\buse\s+(?:strict\b|v?5\.)`),
+			regexp.MustCompile(`(?m)\buse\s+(?:strict\b|v?5\.)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Perl 6"}},
-			regexp.MustCompile(`^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
+			regexp.MustCompile(`(?m)^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
 		},
 		&OrRule{
 			&Languages{[]string{"XPM"}},
-			regexp.MustCompile(`^\s*\/\* XPM \*\/`),
+			regexp.MustCompile(`(?m)^\s*\/\* XPM \*\/`),
 		},
 	},
 	".pod": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Pod 6"}},
-			regexp.MustCompile(`^[\s&&[^\n]]*=(comment|begin pod|begin para|item\d+)`),
+			regexp.MustCompile(`(?m)^[\s&&[^\n]]*=(comment|begin pod|begin para|item\d+)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Pod"}},
@@ -438,38 +434,38 @@ var ContentHeuristics = map[string]*Heuristics{
 	".pp": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Pascal"}},
-			regexp.MustCompile(`^\s*end[.;]`),
+			regexp.MustCompile(`(?m)^\s*end[.;]`),
 		},
 		&OrRule{
 			&Languages{[]string{"Puppet"}},
-			regexp.MustCompile(`^\s+\w+\s+=>\s`),
+			regexp.MustCompile(`(?m)^\s+\w+\s+=>\s`),
 		},
 	},
 	".pro": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Prolog"}},
-			regexp.MustCompile(`^[^\[#]+:-`),
+			regexp.MustCompile(`(?m)^[^\[#]+:-`),
 		},
 		&OrRule{
 			&Languages{[]string{"INI"}},
-			regexp.MustCompile(`last_client=`),
+			regexp.MustCompile(`(?m)last_client=`),
 		},
 		&AndRule{
 			&Languages{[]string{"QMake"}},
 			[]Matcher{
 				&OrRule{
 					nil,
-					regexp.MustCompile(`HEADERS`),
+					regexp.MustCompile(`(?m)HEADERS`),
 				},
 				&OrRule{
 					nil,
-					regexp.MustCompile(`SOURCES`),
+					regexp.MustCompile(`(?m)SOURCES`),
 				},
 			},
 		},
 		&OrRule{
 			&Languages{[]string{"IDL"}},
-			regexp.MustCompile(`^\s*function[ \w,]+$`),
+			regexp.MustCompile(`(?m)^\s*function[ \w,]+$`),
 		},
 	},
 	".properties": &Heuristics{
@@ -478,11 +474,11 @@ var ContentHeuristics = map[string]*Heuristics{
 			[]Matcher{
 				&OrRule{
 					nil,
-					regexp.MustCompile(`^[^#!;][^=]*=`),
+					regexp.MustCompile(`(?m)^[^#!;][^=]*=`),
 				},
 				&OrRule{
 					nil,
-					regexp.MustCompile(`^[;\[]`),
+					regexp.MustCompile(`(?m)^[;\[]`),
 				},
 			},
 		},
@@ -491,67 +487,67 @@ var ContentHeuristics = map[string]*Heuristics{
 			[]Matcher{
 				&OrRule{
 					nil,
-					regexp.MustCompile(`^[^#!;][^=]*=`),
+					regexp.MustCompile(`(?m)^[^#!;][^=]*=`),
 				},
 				&OrRule{
 					nil,
-					regexp.MustCompile(`^[#!]`),
+					regexp.MustCompile(`(?m)^[#!]`),
 				},
 			},
 		},
 		&OrRule{
 			&Languages{[]string{"INI"}},
-			regexp.MustCompile(`^[^#!;][^=]*=`),
+			regexp.MustCompile(`(?m)^[^#!;][^=]*=`),
 		},
 		&OrRule{
 			&Languages{[]string{"Java properties"}},
-			regexp.MustCompile(`^[^#!][^:]*:`),
+			regexp.MustCompile(`(?m)^[^#!][^:]*:`),
 		},
 	},
 	".props": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`^(\s*)(?i:<Project|<Import|<Property|<?xml|xmlns)`),
+			regexp.MustCompile(`(?m)^(\s*)(?i:<Project|<Import|<Property|<?xml|xmlns)`),
 		},
 		&OrRule{
 			&Languages{[]string{"INI"}},
-			regexp.MustCompile(`(?i:\w+\s*=\s*)`),
+			regexp.MustCompile(`(?m)(?i:\w+\s*=\s*)`),
 		},
 	},
 	".q": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"q"}},
-			regexp.MustCompile(`((?i:[A-Z.][\w.]*:{)|(^|\n)\\(cd?|d|l|p|ts?) )`),
+			regexp.MustCompile(`(?m)((?i:[A-Z.][\w.]*:{)|(^|\n)\\(cd?|d|l|p|ts?) )`),
 		},
 		&OrRule{
 			&Languages{[]string{"HiveQL"}},
-			regexp.MustCompile(`(?i:SELECT\s+[\w*,]+\s+FROM|(CREATE|ALTER|DROP)\s(DATABASE|SCHEMA|TABLE))`),
+			regexp.MustCompile(`(?m)(?i:SELECT\s+[\w*,]+\s+FROM|(CREATE|ALTER|DROP)\s(DATABASE|SCHEMA|TABLE))`),
 		},
 	},
 	".r": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Rebol"}},
-			regexp.MustCompile(`(?i:\bRebol\b)`),
+			regexp.MustCompile(`(?m)(?i:\bRebol\b)`),
 		},
 		&OrRule{
 			&Languages{[]string{"R"}},
-			regexp.MustCompile(`<-|^\s*#`),
+			regexp.MustCompile(`(?m)<-|^\s*#`),
 		},
 	},
 	".rno": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"RUNOFF"}},
-			regexp.MustCompile(`(?i:^\.!|^\.end lit(?:eral)?\b)`),
+			regexp.MustCompile(`(?m)(?i:^\.!|^\.end lit(?:eral)?\b)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Roff"}},
-			regexp.MustCompile(`^\.\\" `),
+			regexp.MustCompile(`(?m)^\.\\" `),
 		},
 	},
 	".rpy": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Python"}},
-			regexp.MustCompile(`(?m:^(import|from|class|def)\s)`),
+			regexp.MustCompile(`(?m)(?m:^(import|from|class|def)\s)`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Ren'Py"}},
@@ -560,75 +556,75 @@ var ContentHeuristics = map[string]*Heuristics{
 	".rs": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Rust"}},
-			regexp.MustCompile(`^(use |fn |mod |pub |macro_rules|impl|#!?\[)`),
+			regexp.MustCompile(`(?m)^(use |fn |mod |pub |macro_rules|impl|#!?\[)`),
 		},
 		&OrRule{
 			&Languages{[]string{"RenderScript"}},
-			regexp.MustCompile(`#include|#pragma\s+(rs|version)|__attribute__`),
+			regexp.MustCompile(`(?m)#include|#pragma\s+(rs|version)|__attribute__`),
 		},
 	},
 	".sc": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"SuperCollider"}},
-			regexp.MustCompile(`(?i:\^(this|super)\.|^\s*~\w+\s*=\.)`),
+			regexp.MustCompile(`(?m)(?i:\^(this|super)\.|^\s*~\w+\s*=\.)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Scala"}},
-			regexp.MustCompile(`(^\s*import (scala|java)\.|^\s*class\b)`),
+			regexp.MustCompile(`(?m)(^\s*import (scala|java)\.|^\s*class\b)`),
 		},
 	},
 	".sql": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"PLpgSQL"}},
-			regexp.MustCompile(`(?i:^\\i\b|AS \$\$|LANGUAGE '?plpgsql'?|SECURITY (DEFINER|INVOKER)|BEGIN( WORK| TRANSACTION)?;)`),
+			regexp.MustCompile(`(?m)(?i:^\\i\b|AS \$\$|LANGUAGE '?plpgsql'?|SECURITY (DEFINER|INVOKER)|BEGIN( WORK| TRANSACTION)?;)`),
 		},
 		&OrRule{
 			&Languages{[]string{"SQLPL"}},
-			regexp.MustCompile(`(?i:(alter module)|(language sql)|(begin( NOT)+ atomic)|signal SQLSTATE '[0-9]+')`),
+			regexp.MustCompile(`(?m)(?i:(alter module)|(language sql)|(begin( NOT)+ atomic)|signal SQLSTATE '[0-9]+')`),
 		},
 		&OrRule{
 			&Languages{[]string{"PLSQL"}},
-			regexp.MustCompile(`(?i:\$\$PLSQL_|XMLTYPE|sysdate|systimestamp|\.nextval|connect by|AUTHID (DEFINER|CURRENT_USER)|constructor\W+function)`),
+			regexp.MustCompile(`(?m)(?i:\$\$PLSQL_|XMLTYPE|sysdate|systimestamp|\.nextval|connect by|AUTHID (DEFINER|CURRENT_USER)|constructor\W+function)`),
 		},
 		&NotRule{
 			&Languages{[]string{"SQL"}},
-			[]*regexp.Regexp{regexp.MustCompile(`(?i:begin|boolean|package|exception)`)},
+			[]*regexp.Regexp{regexp.MustCompile(`(?m)(?i:begin|boolean|package|exception)`)},
 		},
 	},
 	".srt": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"SubRip Text"}},
-			regexp.MustCompile(`^(\d{2}:\d{2}:\d{2},\d{3})\s*(-->)\s*(\d{2}:\d{2}:\d{2},\d{3})$`),
+			regexp.MustCompile(`(?m)^(\d{2}:\d{2}:\d{2},\d{3})\s*(-->)\s*(\d{2}:\d{2}:\d{2},\d{3})$`),
 		},
 	},
 	".t": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"Perl"}},
-			regexp.MustCompile(`\buse\s+(?:strict\b|v?5\.)`),
+			regexp.MustCompile(`(?m)\buse\s+(?:strict\b|v?5\.)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Perl 6"}},
-			regexp.MustCompile(`^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
+			regexp.MustCompile(`(?m)^\s*(?:use\s+v6\b|\bmodule\b|\b(?:my\s+)?class\b)`),
 		},
 		&OrRule{
 			&Languages{[]string{"Turing"}},
-			regexp.MustCompile(`^\s*%[ \t]+|^\s*var\s+\w+(\s*:\s*\w+)?\s*:=\s*\w+`),
+			regexp.MustCompile(`(?m)^\s*%[ \t]+|^\s*var\s+\w+(\s*:\s*\w+)?\s*:=\s*\w+`),
 		},
 	},
 	".toc": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"World of Warcraft Addon Data"}},
-			regexp.MustCompile(`^## |@no-lib-strip@`),
+			regexp.MustCompile(`(?m)^## |@no-lib-strip@`),
 		},
 		&OrRule{
 			&Languages{[]string{"TeX"}},
-			regexp.MustCompile(`^\\(contentsline|defcounter|beamer|boolfalse)`),
+			regexp.MustCompile(`(?m)^\\(contentsline|defcounter|beamer|boolfalse)`),
 		},
 	},
 	".ts": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`<TS\b`),
+			regexp.MustCompile(`(?m)<TS\b`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"TypeScript"}},
@@ -637,7 +633,7 @@ var ContentHeuristics = map[string]*Heuristics{
 	".tst": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"GAP"}},
-			regexp.MustCompile(`gap> `),
+			regexp.MustCompile(`(?m)gap> `),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Scilab"}},
@@ -646,41 +642,41 @@ var ContentHeuristics = map[string]*Heuristics{
 	".tsx": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"TypeScript"}},
-			regexp.MustCompile(`^\s*(import.+(from\s+|require\()['"]react|\/\/\/\s*<reference\s)`),
+			regexp.MustCompile(`(?m)^\s*(import.+(from\s+|require\()['"]react|\/\/\/\s*<reference\s)`),
 		},
 		&OrRule{
 			&Languages{[]string{"XML"}},
-			regexp.MustCompile(`(?i:^\s*<\?xml\s+version)`),
+			regexp.MustCompile(`(?m)(?i:^\s*<\?xml\s+version)`),
 		},
 	},
 	".w": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"OpenEdge ABL"}},
-			regexp.MustCompile(`&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS`),
+			regexp.MustCompile(`(?m)&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS`),
 		},
 		&OrRule{
 			&Languages{[]string{"CWeb"}},
-			regexp.MustCompile(`^@(<|\w+\.)`),
+			regexp.MustCompile(`(?m)^@(<|\w+\.)`),
 		},
 	},
 	".x": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"RPC"}},
-			regexp.MustCompile(`\b(program|version)\s+\w+\s*{|\bunion\s+\w+\s+switch\s*\(`),
+			regexp.MustCompile(`(?m)\b(program|version)\s+\w+\s*{|\bunion\s+\w+\s+switch\s*\(`),
 		},
 		&OrRule{
 			&Languages{[]string{"Logos"}},
-			regexp.MustCompile(`^%(end|ctor|hook|group)\b`),
+			regexp.MustCompile(`(?m)^%(end|ctor|hook|group)\b`),
 		},
 		&OrRule{
 			&Languages{[]string{"Linked Script"}},
-			regexp.MustCompile(`OUTPUT_ARCH\(|OUTPUT_FORMAT\(|SECTIONS`),
+			regexp.MustCompile(`(?m)OUTPUT_ARCH\(|OUTPUT_FORMAT\(|SECTIONS`),
 		},
 	},
 	".yy": &Heuristics{
 		&OrRule{
 			&Languages{[]string{"JSON"}},
-			regexp.MustCompile(`\"modelName\"\:\s*\"GM`),
+			regexp.MustCompile(`(?m)\"modelName\"\:\s*\"GM`),
 		},
 		&AlwaysRule{
 			&Languages{[]string{"Yacc"}},

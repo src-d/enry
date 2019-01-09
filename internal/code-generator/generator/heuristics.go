@@ -68,12 +68,15 @@ func loadRule(namedPatterns map[string]StringArray, rule *Rule) *LanguagePattern
 		result = &LanguagePattern{"And", rule.Languages, "", subPatterns}
 	} else if len(rule.Pattern) != 0 { // OrPattern
 		conjunction := strings.Join(rule.Pattern, " | ")
-		result = &LanguagePattern{"Or", rule.Languages, conjunction, nil}
+		pattern := convertToValidRegexp(conjunction)
+		result = &LanguagePattern{"Or", rule.Languages, pattern, nil}
 	} else if rule.NegativePattern != "" { // NotPattern
-		result = &LanguagePattern{"Not", rule.Languages, rule.NegativePattern, nil}
+		pattern := convertToValidRegexp(rule.NegativePattern)
+		result = &LanguagePattern{"Not", rule.Languages, pattern, nil}
 	} else if rule.NamedPattern != "" { // Named OrPattern
 		conjunction := strings.Join(namedPatterns[rule.NamedPattern], " | ")
-		result = &LanguagePattern{"Or", rule.Languages, conjunction, nil}
+		pattern := convertToValidRegexp(conjunction)
+		result = &LanguagePattern{"Or", rule.Languages, pattern, nil}
 	} else { // AlwaysPattern
 		result = &LanguagePattern{"Always", rule.Languages, "", nil}
 	}
@@ -156,5 +159,15 @@ func parseYaml(file string) (*Heuristics, error) {
 // - backreference
 // For referece on supported syntax see https://github.com/google/re2/wiki/Syntax
 func isUnsupportedRegexpSyntax(reg string) bool {
-	return strings.Contains(reg, `(?<`) || strings.Contains(reg, `\1`)
+	return strings.Contains(reg, `(?<`) || strings.Contains(reg, `\1`) ||
+		// See https://github.com/github/linguist/pull/4243#discussion_r246105067
+		(strings.HasPrefix(reg, multilinePrefix+`/`) && strings.HasSuffix(reg, `/`))
+}
+
+const multilinePrefix = "(?m)"
+
+// convertToValidRegexp converts Ruby regexp syntaxt to RE2 equivalent.
+// Does not work with Ruby regexp literals.
+func convertToValidRegexp(rubyRegexp string) string {
+	return multilinePrefix + rubyRegexp
 }
