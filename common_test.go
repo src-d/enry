@@ -11,6 +11,7 @@ import (
 	"gopkg.in/src-d/enry.v1/data"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -19,9 +20,35 @@ const linguistClonedEnvVar = "ENRY_TEST_REPO"
 
 type EnryTestSuite struct {
 	suite.Suite
-	repoLinguist string
-	samplesDir   string
-	cloned       bool
+	tmpLinguist string
+	needToClone bool
+	samplesDir  string
+}
+
+func TestRegexpEdgeCases(t *testing.T) {
+	var regexpEdgeCases = []struct {
+		lang     string
+		filename string
+	}{
+		{lang: "ActionScript", filename: "FooBar.as"},
+		{lang: "Forth", filename: "asm.fr"},
+		{lang: "X PixMap", filename: "cc-public_domain_mark_white.pm"},
+		//{lang: "SQL", filename: "drop_stuff.sql"}, // Classifier strategy fails :/
+		//{lang: "Fstar", filename: "Hacl.Spec.Bignum.Fmul.fst"}, // *.fst fails on GetLanguagesByExtension,
+		{lang: "C++", filename: "Types.h"},
+	}
+
+	for _, r := range regexpEdgeCases {
+		filename := fmt.Sprintf(".linguist/samples/%s/%s", r.lang, r.filename)
+
+		content, err := ioutil.ReadFile(filename)
+		require.NoError(t, err)
+
+		lang := GetLanguage(r.filename, content)
+		t.Logf("File:%s, lang:%s", filename, lang)
+
+		assert.EqualValues(t, r.lang, lang)
+	}
 }
 
 func Test_EnryTestSuite(t *testing.T) {
@@ -30,25 +57,24 @@ func Test_EnryTestSuite(t *testing.T) {
 
 func (s *EnryTestSuite) SetupSuite() {
 	var err error
-	s.repoLinguist = os.Getenv(linguistClonedEnvVar)
-	s.cloned = s.repoLinguist == ""
-	if s.cloned {
-		s.repoLinguist, err = ioutil.TempDir("", "linguist-")
-		assert.NoError(s.T(), err)
-	}
-
-	s.samplesDir = filepath.Join(s.repoLinguist, "samples")
-
-	if s.cloned {
-		cmd := exec.Command("git", "clone", linguistURL, s.repoLinguist)
+	s.tmpLinguist = os.Getenv(linguistClonedEnvVar)
+	s.needToClone = s.tmpLinguist == ""
+	if s.needToClone {
+		s.tmpLinguist, err = ioutil.TempDir("", "linguist-")
+		require.NoError(s.T(), err)
+		fmt.Printf("Cloning Linguist repo to '%s' as %s was not set\n",
+			s.tmpLinguist, linguistClonedEnvVar)
+		cmd := exec.Command("git", "clone", linguistURL, s.tmpLinguist)
 		err = cmd.Run()
-		assert.NoError(s.T(), err)
+		require.NoError(s.T(), err)
 	}
+	s.samplesDir = filepath.Join(s.tmpLinguist, "samples")
+	s.T().Logf("using samples from %s", s.samplesDir)
 
 	cwd, err := os.Getwd()
 	assert.NoError(s.T(), err)
 
-	err = os.Chdir(s.repoLinguist)
+	err = os.Chdir(s.tmpLinguist)
 	assert.NoError(s.T(), err)
 
 	cmd := exec.Command("git", "checkout", data.LinguistCommit)
@@ -60,8 +86,8 @@ func (s *EnryTestSuite) SetupSuite() {
 }
 
 func (s *EnryTestSuite) TearDownSuite() {
-	if s.cloned {
-		err := os.RemoveAll(s.repoLinguist)
+	if s.needToClone {
+		err := os.RemoveAll(s.tmpLinguist)
 		assert.NoError(s.T(), err)
 	}
 }
@@ -88,7 +114,7 @@ func (s *EnryTestSuite) TestGetLanguage() {
 }
 
 func (s *EnryTestSuite) TestGetLanguagesByModelineLinguist() {
-	var modelinesDir = filepath.Join(s.repoLinguist, "test/fixtures/Data/Modelines")
+	var modelinesDir = filepath.Join(s.tmpLinguist, "test/fixtures/Data/Modelines")
 
 	tests := []struct {
 		name       string
@@ -400,7 +426,7 @@ func (s *EnryTestSuite) TestGetLanguageByAlias() {
 func (s *EnryTestSuite) TestLinguistCorpus() {
 	const filenamesDir = "filenames"
 	var cornerCases = map[string]bool{
-		"hello.ms": true,
+		"hello.ms": true, //TODO add instead .es
 	}
 
 	var total, failed, ok, other int
@@ -443,5 +469,5 @@ func (s *EnryTestSuite) TestLinguistCorpus() {
 		return nil
 	})
 
-	fmt.Printf("\t\ttotal files: %d, ok: %d, failed: %d, other: %d\n", total, ok, failed, other)
+	s.T().Logf("\t\ttotal files: %d, ok: %d, failed: %d, other: %d\n", total, ok, failed, other)
 }
