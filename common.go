@@ -455,8 +455,7 @@ func GetLanguageType(language string) (langType Type) {
 // GetLanguageByAlias returns either the language related to the given alias and ok set to true
 // or Otherlanguage and ok set to false if the alias is not recognized.
 func GetLanguageByAlias(alias string) (lang string, ok bool) {
-	a := strings.SplitN(alias, `,`, 2)[0]
-	lang, ok = data.LanguagesByAlias(a)
+	lang, ok = data.LanguageByAlias(alias)
 	if !ok {
 		lang = OtherLanguage
 	}

@@ -34,7 +34,7 @@ func TestRegexpEdgeCases(t *testing.T) {
 		{lang: "Forth", filename: "asm.fr"},
 		{lang: "X PixMap", filename: "cc-public_domain_mark_white.pm"},
 		//{lang: "SQL", filename: "drop_stuff.sql"}, // Classifier strategy fails :/
-		//{lang: "Fstar", filename: "Hacl.Spec.Bignum.Fmul.fst"}, // *.fst fails on GetLanguagesByExtension,
+		{lang: "Fstar", filename: "Hacl.Spec.Bignum.Fmul.fst"},
 		{lang: "C++", filename: "Types.h"},
 	}
 
@@ -47,7 +47,8 @@ func TestRegexpEdgeCases(t *testing.T) {
 		lang := GetLanguage(r.filename, content)
 		t.Logf("File:%s, lang:%s", filename, lang)
 
-		assert.EqualValues(t, r.lang, lang)
+		expLang, _ := data.LanguageByAlias(r.lang)
+		require.EqualValues(t, expLang, lang)
 	}
 }
 

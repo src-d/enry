@@ -5,9 +5,9 @@ package data
 
 import "strings"
 
-// LanguagesByAliasMap keeps alias for different languages and use the name of the languages as an alias too.
+// LanguageByAliasMap keeps alias for different languages and use the name of the languages as an alias too.
 // All the keys (alias or not) are written in lower case and the whitespaces has been replaced by underscores.
-var LanguagesByAliasMap = map[string]string{
+var LanguageByAliasMap = map[string]string{
 	"1c_enterprise":  "1C Enterprise",
 	"abap":           "ABAP",
 	"abl":            "OpenEdge ABL",
@@ -730,16 +730,16 @@ var LanguagesByAliasMap = map[string]string{
 	"zsh":                    "Shell",
 }
 
-// LanguagesByAlias looks up the language name by it's alias or name.
+// LanguageByAlias looks up the language name by it's alias or name.
 // It mirrors the logic of github linguist and is needed e.g for heuristcs.yml
 // that mixes names and aliases in a language field (see XPM example).
-func LanguagesByAlias(langOrAlias string) (lang string, ok bool) {
+func LanguageByAlias(langOrAlias string) (lang string, ok bool) {
 	k := ConvertToAliasKey(langOrAlias)
-	lang, ok = LanguagesByAliasMap[k]
+	lang, ok = LanguageByAliasMap[k]
 	return
 }
 
-// ConvertToAliasKey converts language name to a key in LanguagesByAliasMap.
+// ConvertToAliasKey converts language name to a key in LanguageByAliasMap.
 // Following
 //  - internal.code-generator.generator.convertToAliasKey()
 //  - GetLanguageByAlias()
