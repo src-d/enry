@@ -435,7 +435,7 @@ func (s *EnryTestSuite) TestLinguistCorpus() {
 	filepath.Walk(s.samplesDir, func(path string, f os.FileInfo, err error) error {
 		if f.IsDir() {
 			if f.Name() != filenamesDir {
-				expected = f.Name()
+				expected, _ = data.LanguageByAlias(f.Name())
 			}
 
 			return nil
@@ -458,7 +458,6 @@ func (s *EnryTestSuite) TestLinguistCorpus() {
 		} else {
 			status = "failed"
 			failed++
-
 		}
 
 		if _, ok := cornerCases[filename]; ok {

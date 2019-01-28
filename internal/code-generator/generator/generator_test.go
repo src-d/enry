@@ -28,7 +28,7 @@ const (
 	extensionTestTmplName = "extension.go.tmpl"
 
 	// Heuristics test
-	heuristicsTestFile  = "lib/linguist/heuristics.rb"
+	heuristicsTestFile  = "lib/linguist/heuristics.yml"
 	contentGold         = testDir + "/content.gold"
 	contentTestTmplPath = assetsDir + "/content.go.tmpl"
 	contentTestTmplName = "content.go.tmpl"
@@ -85,13 +85,25 @@ type GeneratorTestSuite struct {
 	suite.Suite
 	tmpLinguist string
 	cloned      bool
+	testCases   []testCase
+}
+
+type testCase struct {
+	name        string
+	fileToParse string
+	samplesDir  string
+	tmplPath    string
+	tmplName    string
+	commit      string
+	generate    File
+	wantOut     string
 }
 
 func Test_GeneratorTestSuite(t *testing.T) {
 	suite.Run(t, new(GeneratorTestSuite))
 }
 
-func (s *GeneratorTestSuite) SetupSuite() {
+func (s *GeneratorTestSuite) cloneLinguistMaybe() {
 	var err error
 	s.tmpLinguist = os.Getenv(linguistClonedEnvVar)
 	s.cloned = s.tmpLinguist == ""
@@ -117,24 +129,9 @@ func (s *GeneratorTestSuite) SetupSuite() {
 	assert.NoError(s.T(), err)
 }
 
-func (s *GeneratorTestSuite) TearDownSuite() {
-	if s.cloned {
-		err := os.RemoveAll(s.tmpLinguist)
-		assert.NoError(s.T(), err)
-	}
-}
-
-func (s *GeneratorTestSuite) TestGenerationFiles() {
-	tests := []struct {
-		name        string
-		fileToParse string
-		samplesDir  string
-		tmplPath    string
-		tmplName    string
-		commit      string
-		generate    File
-		wantOut     string
-	}{
+func (s *GeneratorTestSuite) SetupSuite() {
+	s.cloneLinguistMaybe()
+	s.testCases = []testCase{
 		{
 			name:        "Extensions()",
 			fileToParse: filepath.Join(s.tmpLinguist, languagesFile),
@@ -244,8 +241,29 @@ func (s *GeneratorTestSuite) TestGenerationFiles() {
 			wantOut:     mimeTypeGold,
 		},
 	}
+}
 
-	for _, test := range tests {
+func (s *GeneratorTestSuite) TearDownSuite() {
+	if s.cloned {
+		err := os.RemoveAll(s.tmpLinguist)
+		assert.NoError(s.T(), err)
+	}
+}
+
+// UpdateGeneratorTestSuiteGold is a Gold results generation automation.
+// It should only be enabled&run manually on every new linuguist verision
+// to update *.gold.
+func (s *GeneratorTestSuite) /*Test*/ UpdateGeneratorTestSuiteGold() {
+	for _, test := range s.testCases {
+		dst := test.wantOut
+		s.T().Logf("Generating %s from %s\n", dst, test.fileToParse)
+		err := test.generate(test.fileToParse, test.samplesDir, dst, test.tmplPath, test.tmplName, test.commit)
+		assert.NoError(s.T(), err)
+	}
+}
+
+func (s *GeneratorTestSuite) TestGenerationFiles() {
+	for _, test := range s.testCases {
 		gold, err := ioutil.ReadFile(test.wantOut)
 		assert.NoError(s.T(), err)
 
