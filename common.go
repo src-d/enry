@@ -16,7 +16,7 @@ const OtherLanguage = ""
 // Strategy type fix the signature for the functions that can be used as a strategy.
 type Strategy func(filename string, content []byte, candidates []string) (languages []string)
 
-// DefaultStrategies is a sequence of stratagies used by GetLanguage to detect languages.
+// DefaultStrategies is a sequence of strategies used by GetLanguage to detect languages.
 var DefaultStrategies = []Strategy{
 	GetLanguagesByModeline,
 	GetLanguagesByFilename,

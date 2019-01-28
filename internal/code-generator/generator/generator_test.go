@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -99,11 +100,13 @@ type testCase struct {
 	wantOut     string
 }
 
+var updateGold = flag.Bool("update_gold", false, "Update golden test files")
+
 func Test_GeneratorTestSuite(t *testing.T) {
 	suite.Run(t, new(GeneratorTestSuite))
 }
 
-func (s *GeneratorTestSuite) cloneLinguistMaybe() {
+func (s *GeneratorTestSuite) maybeCloneLinguist() {
 	var err error
 	s.tmpLinguist = os.Getenv(linguistClonedEnvVar)
 	s.cloned = s.tmpLinguist == ""
@@ -130,7 +133,7 @@ func (s *GeneratorTestSuite) cloneLinguistMaybe() {
 }
 
 func (s *GeneratorTestSuite) SetupSuite() {
-	s.cloneLinguistMaybe()
+	s.maybeCloneLinguist()
 	s.testCases = []testCase{
 		{
 			name:        "Extensions()",
@@ -246,14 +249,19 @@ func (s *GeneratorTestSuite) SetupSuite() {
 func (s *GeneratorTestSuite) TearDownSuite() {
 	if s.cloned {
 		err := os.RemoveAll(s.tmpLinguist)
-		assert.NoError(s.T(), err)
+		if err != nil {
+			s.T().Logf("Failed to clean up %s after the test.\n", s.tmpLinguist)
+		}
 	}
 }
 
-// UpdateGeneratorTestSuiteGold is a Gold results generation automation.
-// It should only be enabled&run manually on every new linuguist verision
-// to update *.gold.
-func (s *GeneratorTestSuite) /*Test*/ UpdateGeneratorTestSuiteGold() {
+// TestUpdateGeneratorTestSuiteGold is a Gold results generation automation.
+// It should only be enabled&run manually on every new Linguist version
+// to update *.gold files.
+func (s *GeneratorTestSuite) TestUpdateGeneratorTestSuiteGold() {
+	if !*updateGold {
+		s.T().Skip()
+	}
 	for _, test := range s.testCases {
 		dst := test.wantOut
 		s.T().Logf("Generating %s from %s\n", dst, test.fileToParse)

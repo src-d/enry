@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestYamlParsing(t *testing.T) {
+func TestYAMLParsing(t *testing.T) {
 	heuristics, err := parseYaml("test_files/heuristics.yml")
 
 	require.NoError(t, err)
@@ -45,10 +45,6 @@ func TestYamlParsing(t *testing.T) {
 	assert.Equal(t, "Linux Kernel Module", rules[0].Languages[0])
 	assert.Equal(t, "AMPL", rules[0].Languages[1])
 
-	// for i, rule := range rules {
-	// 	t.Logf("\n\t Forth rule%d: %q\n", i, rule)
-	// }
-
 	// named_patterns
 	require.NotNil(t, heuristics.NamedPatterns)
 	assert.Equal(t, 2, len(heuristics.NamedPatterns))
@@ -57,19 +53,18 @@ func TestYamlParsing(t *testing.T) {
 }
 
 func TestSingleRuleLoading(t *testing.T) {
-	//given
 	namedPatterns := map[string]StringArray{"cpp": []string{"cpp_ptrn1", "cpp_ptrn2"}}
 	rules := []*Rule{
 		&Rule{Languages: []string{"a"}, Patterns: Patterns{NamedPattern: "cpp"}},
 		&Rule{Languages: []string{"b"}, And: []*Rule{}},
 	}
 
-	//named_pattern
+	// named_pattern case
 	langPattern := loadRule(namedPatterns, rules[0])
 	require.Equal(t, "a", langPattern.Langs[0])
 	assert.NotEmpty(t, langPattern.Pattern)
 
-	//and
+	// and case
 	langPattern = loadRule(namedPatterns, rules[1])
 	require.Equal(t, "b", langPattern.Langs[0])
 }
@@ -109,7 +104,7 @@ func TestTemplateMatcherVars(t *testing.T) {
 	heuristics, err := loadHeuristics(parsed)
 	require.NoError(t, err)
 
-	//render tmpl
+	// render a tmpl
 	const contentTmpl = "../assets/content.go.tmpl"
 	tmpl, err := template.ParseFiles(contentTmpl)
 	require.NoError(t, err)
@@ -119,11 +114,10 @@ func TestTemplateMatcherVars(t *testing.T) {
 	require.NoError(t, err, fmt.Sprintf("%+v", tmpl))
 	require.NotEmpty(t, buf)
 
-	//TODO verify generated code:
-	//check key literal exists in map for each extension:
-	// pattern, negative_pattern,
+	// TODO(bzz) add more advanced test using go/ast package, to verify the
+	// strucutre of generated code:
+	//  - check key literal exists in map for each extension:
 
 	src, err := format.Source(buf.Bytes())
-	require.NoError(t, err, buf.String())
-	t.Logf("\n%s\n", string(src))
+	require.NoError(t, err, "\n%s\n", string(src))
 }

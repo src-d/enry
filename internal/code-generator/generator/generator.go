@@ -1,5 +1,5 @@
-// Package generator provides facilities to generate Golang code from data in
-// Linguist.
+// Package generator provides facilities to generate Go code for the
+// package data in enry from YAML files describing supported languages in Linguist.
 package generator
 
 import (
