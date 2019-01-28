@@ -15,7 +15,7 @@ import (
 const (
 	linguistURL          = "https://github.com/github/linguist.git"
 	linguistClonedEnvVar = "ENRY_TEST_REPO"
-	commit               = "d5c8db3fb91963c4b2762ca2ea2ff7cfac109f68"
+	commit               = "e761f9b013e5b61161481fcb898b59721ee40e3d"
 	samplesDir           = "samples"
 	languagesFile        = "lib/linguist/languages.yml"
 
