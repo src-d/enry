@@ -103,10 +103,10 @@ func TestLoadingHeuristicsForSameExt(t *testing.T) {
 }
 
 func TestTemplateMatcherVars(t *testing.T) {
-	parsedYaml, err := parseYaml("test_files/heuristics.yml")
+	parsed, err := parseYaml("test_files/heuristics.yml")
 	require.NoError(t, err)
 
-	heuristics, err := loadHeuristics(parsedYaml)
+	heuristics, err := loadHeuristics(parsed)
 	require.NoError(t, err)
 
 	//render tmpl
