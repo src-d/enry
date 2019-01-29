@@ -262,6 +262,7 @@ func (s *GeneratorTestSuite) TestUpdateGeneratorTestSuiteGold() {
 	if !*updateGold {
 		s.T().Skip()
 	}
+	s.T().Logf("Generating new *.gold test files")
 	for _, test := range s.testCases {
 		dst := test.wantOut
 		s.T().Logf("Generating %s from %s\n", dst, test.fileToParse)

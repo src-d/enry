@@ -154,14 +154,15 @@ Generated Java bindings using a C-shared library and JNI are located under [`jav
 Development
 ------------
 
-*enry* re-uses parts of original [linguist](https://github.com/github/linguist) to generate internal data structures. In order to update to the latest upstream and generate the necessary code you must run:
+*enry* re-uses parts of original [linguist](https://github.com/github/linguist) to generate internal data structures. In order to update to the latest upstream and generate all the necessary code you must run:
 
+    git clone https://github.com/github/linguist.git .linguist
     go generate
 
 We update enry when changes are done in linguist's master branch on the following files:
 
 * [languages.yml](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
-* [heuristics.rb](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.rb)
+* [heuristics.yml](https://github.com/github/linguist/blob/master/lib/linguist/heuristics.yml)
 * [vendor.yml](https://github.com/github/linguist/blob/master/lib/linguist/vendor.yml)
 * [documentation.yml](https://github.com/github/linguist/blob/master/lib/linguist/documentation.yml)
 
