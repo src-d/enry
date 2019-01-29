@@ -63,7 +63,7 @@ func (s *EnryTestSuite) SetupSuite() {
 	if s.needToClone {
 		s.tmpLinguist, err = ioutil.TempDir("", "linguist-")
 		require.NoError(s.T(), err)
-		fmt.Printf("Cloning Linguist repo to '%s' as %s was not set\n",
+		s.T().Logf("Cloning Linguist repo to '%s' as %s was not set\n",
 			s.tmpLinguist, linguistClonedEnvVar)
 		cmd := exec.Command("git", "clone", linguistURL, s.tmpLinguist)
 		err = cmd.Run()
@@ -462,7 +462,7 @@ func (s *EnryTestSuite) TestLinguistCorpus() {
 		}
 
 		if _, ok := cornerCases[filename]; ok {
-			fmt.Printf("\t\t[considered corner case] %s\texpected: %s\tobtained: %s\tstatus: %s\n", filename, expected, obtained, status)
+			s.T().Logf("\t\t[considered corner case] %s\texpected: %s\tobtained: %s\tstatus: %s\n", filename, expected, obtained, status)
 		} else {
 			assert.Equal(s.T(), expected, obtained, fmt.Sprintf("%s\texpected: %s\tobtained: %s\tstatus: %s\n", filename, expected, obtained, status))
 		}

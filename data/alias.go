@@ -734,18 +734,18 @@ var LanguageByAliasMap = map[string]string{
 // It mirrors the logic of github linguist and is needed e.g for heuristcs.yml
 // that mixes names and aliases in a language field (see XPM example).
 func LanguageByAlias(langOrAlias string) (lang string, ok bool) {
-	k := ConvertToAliasKey(langOrAlias)
+	k := convertToAliasKey(langOrAlias)
 	lang, ok = LanguageByAliasMap[k]
 	return
 }
 
-// ConvertToAliasKey converts language name to a key in LanguageByAliasMap.
+// convertToAliasKey converts language name to a key in LanguageByAliasMap.
 // Following
 //  - internal.code-generator.generator.convertToAliasKey()
 //  - GetLanguageByAlias()
 // conventions.
 // It is here to avoid dependency on "generate" and "enry" packages.
-func ConvertToAliasKey(langName string) string {
+func convertToAliasKey(langName string) string {
 	ak := strings.SplitN(langName, `,`, 2)[0]
 	ak = strings.Replace(ak, ` `, `_`, -1)
 	ak = strings.ToLower(ak)
