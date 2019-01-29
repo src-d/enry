@@ -25,7 +25,7 @@ type EnryTestSuite struct {
 	samplesDir  string
 }
 
-func TestRegexpEdgeCases(t *testing.T) {
+func (s *EnryTestSuite) TestRegexpEdgeCases() {
 	var regexpEdgeCases = []struct {
 		lang     string
 		filename string
@@ -33,22 +33,22 @@ func TestRegexpEdgeCases(t *testing.T) {
 		{lang: "ActionScript", filename: "FooBar.as"},
 		{lang: "Forth", filename: "asm.fr"},
 		{lang: "X PixMap", filename: "cc-public_domain_mark_white.pm"},
-		//{lang: "SQL", filename: "drop_stuff.sql"}, // Classifier strategy fails :/
+		//{lang: "SQL", filename: "drop_stuff.sql"}, // https://github.com/src-d/enry/issues/194
 		{lang: "Fstar", filename: "Hacl.Spec.Bignum.Fmul.fst"},
 		{lang: "C++", filename: "Types.h"},
 	}
 
 	for _, r := range regexpEdgeCases {
-		filename := fmt.Sprintf(".linguist/samples/%s/%s", r.lang, r.filename)
+		filename := fmt.Sprintf("%s/samples/%s/%s", s.tmpLinguist, r.lang, r.filename)
 
 		content, err := ioutil.ReadFile(filename)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 
 		lang := GetLanguage(r.filename, content)
-		t.Logf("File:%s, lang:%s", filename, lang)
+		s.T().Logf("File:%s, lang:%s", filename, lang)
 
 		expLang, _ := data.LanguageByAlias(r.lang)
-		require.EqualValues(t, expLang, lang)
+		require.EqualValues(s.T(), expLang, lang)
 	}
 }
 
@@ -427,7 +427,8 @@ func (s *EnryTestSuite) TestGetLanguageByAlias() {
 func (s *EnryTestSuite) TestLinguistCorpus() {
 	const filenamesDir = "filenames"
 	var cornerCases = map[string]bool{
-		"hello.ms": true, //TODO add instead .es
+		"drop_stuff.sql": true, // https://github.com/src-d/enry/issues/194
+		// .es and .ice fail heuristics parsing, but do not fail any tests
 	}
 
 	var total, failed, ok, other int
