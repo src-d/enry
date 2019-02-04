@@ -1,7 +1,3 @@
-package enry // import "gopkg.in/src-d/enry.v1"
-
-//go:generate make code-generate
-
 /*
 	Package enry implements multiple strategies for programming language identification.
 
@@ -15,3 +11,6 @@ package enry // import "gopkg.in/src-d/enry.v1"
 	Upstream Linguist YAML files are used to generate datastructures for data
 	package.
 */
+package enry // import "gopkg.in/src-d/enry.v1"
+
+//go:generate make code-generate
