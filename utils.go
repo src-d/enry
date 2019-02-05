@@ -31,7 +31,7 @@ func IsImage(path string) bool {
 	return false
 }
 
-// GetMIMEType returns a MIME type of a given file based on it's languages.
+// GetMIMEType returns a MIME type of a given file based on its languages.
 func GetMIMEType(path string, language string) string {
 	if mime, ok := data.LanguagesMime[language]; ok {
 		return mime
