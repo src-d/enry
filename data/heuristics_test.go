@@ -5,48 +5,44 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/enry.v1/data/rule"
 )
 
 var testContentHeuristics = map[string]*Heuristics{
 	".md": &Heuristics{ // final pattern for parsed YAML rule
-		&OrRule{
-			&Languages{[]string{"Markdown"}},
+		rule.Or(
+			rule.MatchingLanguages("Markdown"),
 			regexp.MustCompile(`(^[-A-Za-z0-9=#!\*\[|>])|<\/ | \A\z`),
-		},
-		&OrRule{
-			&Languages{[]string{"GCC Machine Description"}},
+		),
+		rule.Or(
+			rule.MatchingLanguages("GCC Machine Description"),
 			regexp.MustCompile(`^(;;|\(define_)`),
-		},
-		&AlwaysRule{
-			&Languages{[]string{"Markdown"}},
-		},
+		),
+		rule.Always(
+			rule.MatchingLanguages("Markdown"),
+		),
 	},
 	".ms": &Heuristics{
 		// Order defines precedence: And, Or, Not, Named, Always
-		&AndRule{
-			&Languages{[]string{"Unix Assembly"}},
-			[]Matcher{
-				&NotRule{
-					nil,
-					[]*regexp.Regexp{regexp.MustCompile(`/\*`)},
-				},
-				&OrRule{
-					nil,
-					regexp.MustCompile(`^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
-				},
-			},
-		},
-		&OrRule{
-			&Languages{[]string{"Roff"}},
+		rule.And(
+			rule.MatchingLanguages("Unix Assembly"),
+			rule.Not(nil, regexp.MustCompile(`/\*`)),
+			rule.Or(
+				nil,
+				regexp.MustCompile(`^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
+			),
+		),
+		rule.Or(
+			rule.MatchingLanguages("Roff"),
 			regexp.MustCompile(`^[.''][A-Za-z]{2}(\s|$)`),
-		},
-		&AlwaysRule{
-			&Languages{[]string{"MAXScript"}},
-		},
+		),
+		rule.Always(
+			rule.MatchingLanguages("MAXScript"),
+		),
 	},
 }
 
-func TestContentHeuristics_MatchingAlways(t *testing.T) {
+func TestContentHeuristic_MatchingAlways(t *testing.T) {
 	lang := testContentHeuristics[".md"].matchString("")
 	assert.Equal(t, []string{"Markdown"}, lang)
 
@@ -54,12 +50,12 @@ func TestContentHeuristics_MatchingAlways(t *testing.T) {
 	assert.Equal(t, []string{"MAXScript"}, lang)
 }
 
-func TestContentHeuristics_MatchingAnd(t *testing.T) {
+func TestContentHeuristic_MatchingAnd(t *testing.T) {
 	lang := testContentHeuristics[".md"].matchString(";;")
 	assert.Equal(t, []string{"GCC Machine Description"}, lang)
 }
 
-func TestContentHeuristics_MatchingOr(t *testing.T) {
+func TestContentHeuristic_MatchingOr(t *testing.T) {
 	lang := testContentHeuristics[".ms"].matchString("	.include \"math.s\"")
 	assert.Equal(t, []string{"Unix Assembly"}, lang)
 }

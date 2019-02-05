@@ -116,20 +116,20 @@ func (s *GeneratorTestSuite) maybeCloneLinguist() {
 		cmd := exec.Command("git", "clone", linguistURL, s.tmpLinguist)
 		err = cmd.Run()
 		assert.NoError(s.T(), err)
+
+		cwd, err := os.Getwd()
+		assert.NoError(s.T(), err)
+
+		err = os.Chdir(s.tmpLinguist)
+		assert.NoError(s.T(), err)
+
+		cmd = exec.Command("git", "checkout", commit)
+		err = cmd.Run()
+		assert.NoError(s.T(), err)
+
+		err = os.Chdir(cwd)
+		assert.NoError(s.T(), err)
 	}
-
-	cwd, err := os.Getwd()
-	assert.NoError(s.T(), err)
-
-	err = os.Chdir(s.tmpLinguist)
-	assert.NoError(s.T(), err)
-
-	cmd := exec.Command("git", "checkout", commit)
-	err = cmd.Run()
-	assert.NoError(s.T(), err)
-
-	err = os.Chdir(cwd)
-	assert.NoError(s.T(), err)
 }
 
 func (s *GeneratorTestSuite) SetupSuite() {
