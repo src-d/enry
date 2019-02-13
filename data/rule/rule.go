@@ -3,10 +3,6 @@
 // with colliding extensions based on regexps from Linguist data.
 package rule
 
-import (
-	"regexp"
-)
-
 // Heuristic consist of a number of rules where each, if matches,
 // identifes content as belonging to a programming language(s).
 type Heuristic interface {
@@ -17,6 +13,7 @@ type Heuristic interface {
 // Matcher checks if the data matches (number of) pattern.
 // Every rule below implements this interface: a rule is matcher that identifies
 // given programming language(s) in case of the match.
+// A regexp.Regexp satisfies this interface and can be used instead.
 type Matcher interface {
 	Match(data []byte) bool
 }
@@ -40,13 +37,13 @@ func MatchingLanguages(langs ...string) languages {
 // Implements a Heuristic.
 type or struct {
 	languages
-	pattern *regexp.Regexp
+	pattern Matcher
 }
 
 // Or rule matches, if a single matching pattern exists.
 // It defines only one pattern as it relies on compile-time optimization that
 // represtes union with | in a single regexp.
-func Or(l languages, r *regexp.Regexp) Heuristic {
+func Or(l languages, r Matcher) Heuristic {
 	return or{l, r}
 }
 
@@ -79,11 +76,11 @@ func (r and) Match(data []byte) bool {
 // Implements a Heuristic.
 type not struct {
 	languages
-	Patterns []*regexp.Regexp
+	Patterns []Matcher
 }
 
 // Not rule matches if none of the patterns match.
-func Not(l languages, r ...*regexp.Regexp) Heuristic {
+func Not(l languages, r ...Matcher) Heuristic {
 	return not{l, r}
 }
 
