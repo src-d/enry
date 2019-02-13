@@ -58,7 +58,7 @@ func (r or) Match(data []byte) bool {
 // Implements a Heuristic.
 type and struct {
 	languages
-	Patterns []Matcher
+	patterns []Matcher
 }
 
 // And rule matches, if each of the patterns does match.
@@ -68,7 +68,7 @@ func And(l languages, m ...Matcher) Heuristic {
 
 // Match implements data.Matcher.
 func (r and) Match(data []byte) bool {
-	for _, p := range r.Patterns {
+	for _, p := range r.patterns {
 		if !p.Match(data) {
 			return false
 		}
