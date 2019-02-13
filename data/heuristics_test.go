@@ -26,9 +26,9 @@ var testContentHeuristics = map[string]*Heuristics{
 		// Order defines precedence: And, Or, Not, Named, Always
 		rule.And(
 			rule.MatchingLanguages("Unix Assembly"),
-			rule.Not(nil, regexp.MustCompile(`/\*`)),
+			rule.Not(rule.MatchingLanguages(""), regexp.MustCompile(`/\*`)),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
 			),
 		),

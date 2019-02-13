@@ -9,9 +9,9 @@ import "gopkg.in/src-d/enry.v1/data/rule"
 type Heuristics []rule.Heuristic
 
 // Match returns languages identified by the matching rule of the heuristic.
-func (hs *Heuristics) Match(data []byte) []string {
+func (hs Heuristics) Match(data []byte) []string {
 	var matchedLangs []string
-	for _, heuristic := range *hs {
+	for _, heuristic := range hs {
 		if heuristic.Match(data) {
 			for _, langOrAlias := range heuristic.Languages() {
 				lang, ok := LanguageByAlias(langOrAlias)

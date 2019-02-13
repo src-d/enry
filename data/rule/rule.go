@@ -28,90 +28,86 @@ type languages struct {
 }
 
 // Languages returns all languages, identified by this Matcher.
-func (l *languages) Languages() []string {
+func (l languages) Languages() []string {
 	return l.langs
 }
 
 // MatchingLanguages is a helper to create new languages.
-func MatchingLanguages(langs ...string) *languages {
-	return &languages{langs}
+func MatchingLanguages(langs ...string) languages {
+	return languages{langs}
 }
 
 // Implements a Heuristic.
 type or struct {
-	*languages
-	Pattern *regexp.Regexp
+	languages
+	pattern *regexp.Regexp
 }
 
 // Or rule matches, if a single matching pattern exists.
 // It defines only one pattern as it relies on compile-time optimization that
 // represtes union with | in a single regexp.
-func Or(l *languages, r *regexp.Regexp) *or {
-	return &or{l, r}
+func Or(l languages, r *regexp.Regexp) Heuristic {
+	return or{l, r}
 }
 
 // Match implements rule.Matcher.
-func (r *or) Match(data []byte) bool {
-	return r.Pattern.Match(data)
+func (r or) Match(data []byte) bool {
+	return r.pattern.Match(data)
 }
 
 // Implements a Heuristic.
 type and struct {
-	*languages
+	languages
 	Patterns []Matcher
 }
 
 // And rule matches, if each of the patterns does match.
-func And(l *languages, m ...Matcher) *and {
-	return &and{l, m}
+func And(l languages, m ...Matcher) Heuristic {
+	return and{l, m}
 }
 
 // Match implements data.Matcher.
-func (r *and) Match(data []byte) bool {
-	allMatch := true
+func (r and) Match(data []byte) bool {
 	for _, p := range r.Patterns {
 		if !p.Match(data) {
-			allMatch = false
-			break
+			return false
 		}
 	}
-	return allMatch
+	return true
 }
 
 // Implements a Heuristic.
 type not struct {
-	*languages
+	languages
 	Patterns []*regexp.Regexp
 }
 
 // Not rule matches if none of the patterns match.
-func Not(l *languages, r ...*regexp.Regexp) *not {
-	return &not{l, r}
+func Not(l languages, r ...*regexp.Regexp) Heuristic {
+	return not{l, r}
 }
 
 // Match implements data.Matcher.
-func (r *not) Match(data []byte) bool {
-	allDontMatch := true
+func (r not) Match(data []byte) bool {
 	for _, p := range r.Patterns {
 		if p.Match(data) {
-			allDontMatch = false
-			break
+			return false
 		}
 	}
-	return allDontMatch
+	return true
 }
 
 // Implements a Heuristic.
 type always struct {
-	*languages
+	languages
 }
 
 // Always rule always matches. Often is used as a default fallback.
-func Always(l *languages) *always {
-	return &always{l}
+func Always(l languages) Heuristic {
+	return always{l}
 }
 
 // Match implements Matcher.
-func (r *always) Match(data []byte) bool {
+func (r always) Match(data []byte) bool {
 	return true
 }

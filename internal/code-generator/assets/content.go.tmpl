@@ -46,6 +46,6 @@ var ContentHeuristics = map[string]*Heuristics{
 	{{with . -}}
 		rule.MatchingLanguages( {{range .}} {{printf "\"%s\"" .}}, {{end}} ),
 	{{ else -}}
-		nil,
+		rule.MatchingLanguages(""),
 	{{end -}}
 {{end}}
