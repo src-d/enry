@@ -345,11 +345,11 @@ var ContentHeuristics = map[string]*Heuristics{
 		rule.And(
 			rule.MatchingLanguages("Unix Assembly"),
 			rule.Not(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)/\*`),
 			),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)^\s*\.(?:include\s|globa?l\s|[A-Za-z][_A-Za-z0-9]*:)`),
 			),
 		),
@@ -455,11 +455,11 @@ var ContentHeuristics = map[string]*Heuristics{
 		rule.And(
 			rule.MatchingLanguages("QMake"),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)HEADERS`),
 			),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)SOURCES`),
 			),
 		),
@@ -472,22 +472,22 @@ var ContentHeuristics = map[string]*Heuristics{
 		rule.And(
 			rule.MatchingLanguages("INI"),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)^[^#!;][^=]*=`),
 			),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)^[;\[]`),
 			),
 		),
 		rule.And(
 			rule.MatchingLanguages("Java Properties"),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)^[^#!;][^=]*=`),
 			),
 			rule.Or(
-				nil,
+				rule.MatchingLanguages(""),
 				regexp.MustCompile(`(?m)^[#!]`),
 			),
 		),
