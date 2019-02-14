@@ -157,6 +157,8 @@ Development
 *enry* re-uses parts of original [linguist](https://github.com/github/linguist) to generate internal data structures. In order to update to the latest upstream and generate all the necessary code you must run:
 
     git clone https://github.com/github/linguist.git .linguist
+    # update commit in generator_test.go (to re-generate .gold fixtures)
+    # https://github.com/src-d/enry/blob/13d3d66d37a87f23a013246a1b0678c9ee3d524b/internal/code-generator/generator/generator_test.go#L18
     go generate
 
 We update enry when changes are done in linguist's master branch on the following files:
@@ -185,8 +187,6 @@ Using [linguist/samples](https://github.com/github/linguist/tree/master/samples)
 as a set for the tests, the following issues were found:
 
 * [Heuristics for ".es" extension](https://github.com/github/linguist/blob/e761f9b013e5b61161481fcb898b59721ee40e3d/lib/linguist/heuristics.yml#L103) in JavaScript could not be parsed, due to unsupported backreference in RE2 regexp engine
-
-* Heuristics for ".ice" extension can not be parsed due to a bug in Regex syntax upstream [github/linguist#4376](https://github.com/github/linguist/pull/4376)
 
 * As of (Linguist v5.3.2)[https://github.com/github/linguist/releases/tag/v5.3.2] it is using [flex-based scanner in C for tokenization](https://github.com/github/linguist/pull/3846). Enry stil uses [extract_token](https://github.com/github/linguist/pull/3846/files#diff-d5179df0b71620e3fac4535cd1368d15L60) regex-based algorithm. Tracked under https://github.com/src-d/enry/issues/193
 
