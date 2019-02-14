@@ -1,9 +1,9 @@
 // Package rule contains rule-based heuristic implementations.
 // It is used in the generated code in content.go for disambiguation of languages
-// with colliding extensions based on regexps from Linguist data.
+// with colliding extensions, based on regexps from Linguist data.
 package rule
 
-// Heuristic consist of a number of rules where each, if matches,
+// Heuristic consist of (a number of) rules where each, if matches,
 // identifes content as belonging to a programming language(s).
 type Heuristic interface {
 	Matcher
@@ -11,8 +11,7 @@ type Heuristic interface {
 }
 
 // Matcher checks if the data matches (number of) pattern.
-// Every rule below implements this interface: a rule is matcher that identifies
-// given programming language(s) in case of the match.
+// Every heuristic rule below implements this interface.
 // A regexp.Regexp satisfies this interface and can be used instead.
 type Matcher interface {
 	Match(data []byte) bool
@@ -41,8 +40,8 @@ type or struct {
 }
 
 // Or rule matches, if a single matching pattern exists.
-// It defines only one pattern as it relies on compile-time optimization that
-// represtes union with | in a single regexp.
+// It recives only one pattern as it relies on compile-time optimization that
+// represtes union with | inside a single regexp.
 func Or(l languages, r Matcher) Heuristic {
 	return or{l, r}
 }
