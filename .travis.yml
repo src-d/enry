@@ -46,7 +46,7 @@ jobs:
     - name: 'java unit-tests'
       stage: test
       language: scala
-      jdk: oraclejdk9
+      jdk: openjdk10
       before_install:
         - export CGO_ENABLED=1
         # mimics exact behavior of 'go_import_path' for non-go build image
@@ -126,7 +126,7 @@ jobs:
     - name: 'java: publish to maven'
       stage: publish
       language: scala
-      jdk: oraclejdk9
+      jdk: openjdk10
       before_install:
         - export CGO_ENABLED=1
         # mimics exact behavior of 'go_import_path' for non-go build image
