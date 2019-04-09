@@ -2,44 +2,17 @@
 #
 # A more capable sbt runner, coincidentally also called sbt.
 # Author: Paul Phillips <paulp@improving.org>
-
-# Copyright (c) 2011, Paul Phillips. All rights reserved.
-# Generated from http://www.opensource.org/licenses/bsd-license.php
-#
-# Redistribution and use in source and binary forms, with or withou
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#     * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-#     * Neither the name of the author nor the names of its contributors
-# may be used to endorse or promote products derived from this software
-# without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+# https://github.com/paulp/sbt-extras
 
 set -o pipefail
 
-declare -r sbt_release_version="0.13.15"
-declare -r sbt_unreleased_version="0.13.15"
+declare -r sbt_release_version="1.2.8"
+declare -r sbt_unreleased_version="1.2.8"
 
-declare -r latest_212="2.12.1"
-declare -r latest_211="2.11.11"
-declare -r latest_210="2.10.6"
+declare -r latest_213="2.13.0-RC1"
+declare -r latest_212="2.12.8"
+declare -r latest_211="2.11.12"
+declare -r latest_210="2.10.7"
 declare -r latest_29="2.9.3"
 declare -r latest_28="2.8.2"
 
@@ -50,13 +23,13 @@ declare -r sbt_launch_ivy_snapshot_repo="https://repo.scala-sbt.org/scalasbt/ivy
 declare -r sbt_launch_mvn_release_repo="http://repo.scala-sbt.org/scalasbt/maven-releases"
 declare -r sbt_launch_mvn_snapshot_repo="http://repo.scala-sbt.org/scalasbt/maven-snapshots"
 
-declare -r default_jvm_opts_common="-Xms512m -Xmx1536m -Xss2m"
+declare -r default_jvm_opts_common="-Xms512m -Xss2m"
 declare -r noshare_opts="-Dsbt.global.base=project/.sbtboot -Dsbt.boot.directory=project/.boot -Dsbt.ivy.home=project/.ivy"
 
 declare sbt_jar sbt_dir sbt_create sbt_version sbt_script sbt_new
 declare sbt_explicit_version
 declare verbose noshare batch trace_level
-declare sbt_saved_stty debugUs
+declare debugUs
 
 declare java_cmd="java"
 declare sbt_launch_dir="$HOME/.sbt/launchers"
@@ -70,21 +43,24 @@ declare -a extra_jvm_opts extra_sbt_opts
 
 echoerr () { echo >&2 "$@"; }
 vlog ()    { [[ -n "$verbose" ]] && echoerr "$@"; }
-die ()     { echo "Aborting: $@" ; exit 1; }
+die ()     { echo "Aborting: $*" ; exit 1; }
 
-# restore stty settings (echo in particular)
-onSbtRunnerExit() {
-  [[ -n "$sbt_saved_stty" ]] || return
-  vlog ""
-  vlog "restoring stty: $sbt_saved_stty"
-  stty "$sbt_saved_stty"
-  unset sbt_saved_stty
+setTrapExit () {
+  # save stty and trap exit, to ensure echo is re-enabled if we are interrupted.
+  SBT_STTY="$(stty -g 2>/dev/null)"
+  export SBT_STTY
+
+  # restore stty settings (echo in particular)
+  onSbtRunnerExit() {
+    [ -t 0 ] || return
+    vlog ""
+    vlog "restoring stty: $SBT_STTY"
+    stty "$SBT_STTY"
+  }
+
+  vlog "saving stty: $SBT_STTY"
+  trap onSbtRunnerExit EXIT
 }
-
-# save stty and trap exit, to ensure echo is re-enabled if we are interrupted.
-trap onSbtRunnerExit EXIT
-sbt_saved_stty="$(stty -g 2>/dev/null)"
-vlog "Saved stty: $sbt_saved_stty"
 
 # this seems to cover the bases on OSX, and someone will
 # have to tell me about the others.
@@ -92,7 +68,7 @@ get_script_path () {
   local path="$1"
   [[ -L "$path" ]] || { echo "$path" ; return; }
 
-  local target="$(readlink "$path")"
+  local -r target="$(readlink "$path")"
   if [[ "${target:0:1}" == "/" ]]; then
     echo "$target"
   else
@@ -100,8 +76,10 @@ get_script_path () {
   fi
 }
 
-declare -r script_path="$(get_script_path "$BASH_SOURCE")"
-declare -r script_name="${script_path##*/}"
+script_path="$(get_script_path "${BASH_SOURCE[0]}")"
+declare -r script_path
+script_name="${script_path##*/}"
+declare -r script_name
 
 init_default_option_file () {
   local overriding_var="${!1}"
@@ -115,27 +93,12 @@ init_default_option_file () {
   echo "$default_file"
 }
 
-declare sbt_opts_file="$(init_default_option_file SBT_OPTS .sbtopts)"
-declare jvm_opts_file="$(init_default_option_file JVM_OPTS .jvmopts)"
+sbt_opts_file="$(init_default_option_file SBT_OPTS .sbtopts)"
+jvm_opts_file="$(init_default_option_file JVM_OPTS .jvmopts)"
 
 build_props_sbt () {
   [[ -r "$buildProps" ]] && \
     grep '^sbt\.version' "$buildProps" | tr '=\r' ' ' | awk '{ print $2; }'
-}
-
-update_build_props_sbt () {
-  local ver="$1"
-  local old="$(build_props_sbt)"
-
-  [[ -r "$buildProps" ]] && [[ "$ver" != "$old" ]] && {
-    perl -pi -e "s/^sbt\.version\b.*\$/sbt.version=${ver}/" "$buildProps"
-    grep -q '^sbt.version[ =]' "$buildProps" || printf "\nsbt.version=%s\n" "$ver" >> "$buildProps"
-
-    vlog "!!!"
-    vlog "!!! Updated file $buildProps setting sbt.version to: $ver"
-    vlog "!!! Previous value was: $old"
-    vlog "!!!"
-  }
 }
 
 set_sbt_version () {
@@ -182,9 +145,9 @@ addResidual () { vlog "[residual] arg = '$1'"  ; residual_args+=("$1"); }
 addResolver () { addSbt "set resolvers += $1"; }
 addDebugger () { addJava "-Xdebug" ; addJava "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$1"; }
 setThisBuild () {
-  vlog "[addBuild] args = '$@'"
+  vlog "[addBuild] args = '$*'"
   local key="$1" && shift
-  addSbt "set $key in ThisBuild := $@"
+  addSbt "set $key in ThisBuild := $*"
 }
 setScalaVersion () {
   [[ "$1" == *"-SNAPSHOT" ]] && addResolver 'Resolver.sonatypeRepo("snapshots")'
@@ -198,7 +161,19 @@ setJavaHome () {
   export PATH="$JAVA_HOME/bin:$PATH"
 }
 
-getJavaVersion() { "$1" -version 2>&1 | grep -E -e '(java|openjdk) version' | awk '{ print $3 }' | tr -d \"; }
+getJavaVersion() {
+  local -r str=$("$1" -version 2>&1 | grep -E -e '(java|openjdk) version' | awk '{ print $3 }' | tr -d '"')
+
+  # java -version on java8 says 1.8.x
+  # but on 9 and 10 it's 9.x.y and 10.x.y.
+  if [[ "$str" =~ ^1\.([0-9]+)\..*$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  elif [[ "$str" =~ ^([0-9]+)\..*$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  elif [[ -n "$str" ]]; then
+    echoerr "Can't parse java version from: $str"
+  fi
+}
 
 checkJava() {
   # Warn if there is a Java version mismatch between PATH and JAVA_HOME/JDK_HOME
@@ -219,14 +194,14 @@ checkJava() {
 }
 
 java_version () {
-  local version=$(getJavaVersion "$java_cmd")
+  local -r version=$(getJavaVersion "$java_cmd")
   vlog "Detected Java version: $version"
-  echo "${version:2:1}"
+  echo "$version"
 }
 
 # MaxPermSize critical on pre-8 JVMs but incurs noisy warning on 8+
 default_jvm_opts () {
-  local v="$(java_version)"
+  local -r v="$(java_version)"
   if [[ $v -ge 8 ]]; then
     echo "$default_jvm_opts_common"
   else
@@ -257,17 +232,22 @@ execRunner () {
     vlog ""
   }
 
-  [[ -n "$batch" ]] && exec </dev/null
-  exec "$@"
+  setTrapExit
+
+  if [[ -n "$batch" ]]; then
+    "$@" < /dev/null
+  else
+    "$@"
+  fi
 }
 
 jar_url ()  { make_url "$1"; }
 
-is_cygwin () [[ "$(uname -a)" == "CYGWIN"* ]]
+is_cygwin () { [[ "$(uname -a)" == "CYGWIN"* ]]; }
 
 jar_file () {
   is_cygwin \
-  && echo "$(cygpath -w $sbt_launch_dir/"$1"/sbt-launch.jar)" \
+  && cygpath -w "$sbt_launch_dir/$1/sbt-launch.jar" \
   || echo "$sbt_launch_dir/$1/sbt-launch.jar"
 }
 
@@ -280,9 +260,9 @@ download_url () {
   echoerr "    To  $jar"
 
   mkdir -p "${jar%/*}" && {
-    if which curl >/dev/null; then
+    if command -v curl > /dev/null 2>&1; then
       curl --fail --silent --location "$url" --output "$jar"
-    elif which wget >/dev/null; then
+    elif command -v wget > /dev/null 2>&1; then
       wget -q -O "$jar" "$url"
     fi
   } && [[ -r "$jar" ]]
@@ -349,6 +329,7 @@ runner with the -x option.
   -210                      use $latest_210
   -211                      use $latest_211
   -212                      use $latest_212
+  -213                      use $latest_213
   -scala-home <path>        use the scala build at the specified directory
   -scala-version <version>  use the specified version of scala
   -binary-version <version> use the specified scala version when searching for dependencies
@@ -428,6 +409,7 @@ process_args () {
               -210) setScalaVersion "$latest_210" && shift ;;
               -211) setScalaVersion "$latest_211" && shift ;;
               -212) setScalaVersion "$latest_212" && shift ;;
+              -213) setScalaVersion "$latest_213" && shift ;;
                new) sbt_new=true && : ${sbt_explicit_version:=$sbt_release_version} && addResidual "$1" && shift ;;
                  *) addResidual "$1" && shift ;;
     esac
@@ -441,7 +423,7 @@ process_args "$@"
 readConfigFile() {
   local end=false
   until $end; do
-    read || end=true
+    read -r || end=true
     [[ $REPLY =~ ^# ]] || [[ -z $REPLY ]] || echo "$REPLY"
   done < "$1"
 }
@@ -450,10 +432,10 @@ readConfigFile() {
 # can supply args to this runner
 if [[ -r "$sbt_opts_file" ]]; then
   vlog "Using sbt options defined in file $sbt_opts_file"
-  while read opt; do extra_sbt_opts+=("$opt"); done < <(readConfigFile "$sbt_opts_file")
+  while read -r opt; do extra_sbt_opts+=("$opt"); done < <(readConfigFile "$sbt_opts_file")
 elif [[ -n "$SBT_OPTS" && ! ("$SBT_OPTS" =~ ^@.*) ]]; then
   vlog "Using sbt options defined in variable \$SBT_OPTS"
-  extra_sbt_opts=( $SBT_OPTS )
+  IFS=" " read -r -a extra_sbt_opts <<< "$SBT_OPTS"
 else
   vlog "No extra sbt options have been defined"
 fi
@@ -473,19 +455,18 @@ checkJava
 setTraceLevel() {
   case "$sbt_version" in
     "0.7."* | "0.10."* | "0.11."* ) echoerr "Cannot set trace level in sbt version $sbt_version" ;;
-                                 *) setThisBuild traceLevel $trace_level ;;
+                                 *) setThisBuild traceLevel "$trace_level" ;;
   esac
 }
 
 # set scalacOptions if we were given any -S opts
-[[ ${#scalac_args[@]} -eq 0 ]] || addSbt "set scalacOptions in ThisBuild += \"${scalac_args[@]}\""
+[[ ${#scalac_args[@]} -eq 0 ]] || addSbt "set scalacOptions in ThisBuild += \"${scalac_args[*]}\""
 
-# Update build.properties on disk to set explicit version - sbt gives us no choice
-[[ -n "$sbt_explicit_version" && -z "$sbt_new" ]] && update_build_props_sbt "$sbt_explicit_version"
+[[ -n "$sbt_explicit_version" && -z "$sbt_new" ]] && addJava "-Dsbt.version=$sbt_explicit_version"
 vlog "Detected sbt version $sbt_version"
 
 if [[ -n "$sbt_script" ]]; then
-  residual_args=( $sbt_script ${residual_args[@]} )
+  residual_args=( "$sbt_script" "${residual_args[@]}" )
 else
   # no args - alert them there's stuff in here
   (( argumentCount > 0 )) || {
@@ -506,6 +487,7 @@ EOM
 }
 
 # pick up completion if present; todo
+# shellcheck disable=SC1091
 [[ -r .sbt_completion.sh ]] && source .sbt_completion.sh
 
 # directory to store sbt launchers
@@ -540,13 +522,13 @@ fi
 
 if [[ -r "$jvm_opts_file" ]]; then
   vlog "Using jvm options defined in file $jvm_opts_file"
-  while read opt; do extra_jvm_opts+=("$opt"); done < <(readConfigFile "$jvm_opts_file")
+  while read -r opt; do extra_jvm_opts+=("$opt"); done < <(readConfigFile "$jvm_opts_file")
 elif [[ -n "$JVM_OPTS" && ! ("$JVM_OPTS" =~ ^@.*) ]]; then
   vlog "Using jvm options defined in \$JVM_OPTS variable"
-  extra_jvm_opts=( $JVM_OPTS )
+  IFS=" " read -r -a extra_jvm_opts <<< "$JVM_OPTS"
 else
   vlog "Using default jvm options"
-  extra_jvm_opts=( $(default_jvm_opts) )
+  IFS=" " read -r -a extra_jvm_opts <<< "$(default_jvm_opts)"
 fi
 
 # traceLevel is 0.12+
@@ -568,13 +550,12 @@ main () {
 # we're not going to print those lines anyway. We strip that bit of
 # line noise, but leave the other codes to preserve color.
 mainFiltered () {
-  local ansiOverwrite='\r\x1BM\x1B[2K'
-  local excludeRegex=$(egrep -v '^#|^$' ~/.sbtignore | paste -sd'|' -)
+  local -r excludeRegex=$(grep -E -v '^#|^$' ~/.sbtignore | paste -sd'|' -)
 
   echoLine () {
-    local line="$1"
-    local line1="$(echo "$line" | sed 's/\r\x1BM\x1B\[2K//g')"       # This strips the OverwriteLine code.
-    local line2="$(echo "$line1" | sed 's/\x1B\[[0-9;]*[JKmsu]//g')" # This strips all codes - we test regexes against this.
+    local -r line="$1"
+    local -r line1="${line//\r\x1BM\x1B\[2K//g}"       # This strips the OverwriteLine code.
+    local -r line2="${line1//\x1B\[[0-9;]*[JKmsu]//g}" # This strips all codes - we test regexes against this.
 
     if [[ $line2 =~ $excludeRegex ]]; then
       [[ -n $debugUs ]] && echo "[X] $line1"
@@ -591,7 +572,7 @@ mainFiltered () {
 # Obviously this is super ad hoc but I don't know how to improve on it. Testing whether
 # stdin is a terminal is useless because most of my use cases for this filtering are
 # exactly when I'm at a terminal, running sbt non-interactively.
-shouldFilter () { [[ -f ~/.sbtignore ]] && ! egrep -q '\b(shell|console|consoleProject)\b' <<<"${residual_args[@]}"; }
+shouldFilter () { [[ -f ~/.sbtignore ]] && ! grep -E -q '\b(shell|console|consoleProject)\b' <<<"${residual_args[@]}"; }
 
 # run sbt
 if shouldFilter; then mainFiltered; else main; fi
