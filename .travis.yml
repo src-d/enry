@@ -1,8 +1,8 @@
 dist: trusty
 language: go
 go:
+  - '1.13.x'
   - '1.12.x'
-  - '1.11.x'
 env:
   global:
     - GO_VERSION_FOR_JVM='1.11.x'
