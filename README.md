@@ -1,3 +1,5 @@
+## WE CONTINUE THE DEVELOPMENT AT [go-enry/go-enry](https://github.com/go-enry/go-enry). This repository is abandoned, and no further updates will be done on the code base, nor issue/prs will be answered or attended.
+
 # enry [![GoDoc](https://godoc.org/github.com/src-d/enry?status.svg)](https://godoc.org/github.com/src-d/enry) [![Build Status](https://travis-ci.com/src-d/enry.svg?branch=master)](https://travis-ci.com/src-d/enry) [![codecov](https://codecov.io/gh/src-d/enry/branch/master/graph/badge.svg)](https://codecov.io/gh/src-d/enry)
 
 Programming language detector and toolbox to ignore binary or vendored files. *enry*, started as a port to _Go_ of the original [linguist](https://github.com/github/linguist) _Ruby_ library, that has an improved *2x performance*.
