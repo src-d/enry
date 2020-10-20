@@ -140,7 +140,7 @@ var LanguagesColor = map[string]string{
 	"NetLogo":                  "#ff6375",
 	"NewLisp":                  "#87AED7",
 	"Nextflow":                 "#3ac486",
-	"Nim":                      "#37775b",
+	"Nim":                      "#ffc200",
 	"Nit":                      "#009917",
 	"Nix":                      "#7e7eff",
 	"Nu":                       "#c9df40",
